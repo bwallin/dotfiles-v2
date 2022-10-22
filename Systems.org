@@ -12,10 +12,7 @@
   - [[#base-configuration][Base Configuration]]
   - [[#machines][Machines]]
     - [[#per-system-settings][Per-System Settings]]
-    - [[#zerocool][zerocool]]
-    - [[#acidburn][acidburn]]
-    - [[#davinci][davinci]]
-    - [[#phantom][phantom]]
+    - [[crustynubbin][crustynubbin]]
   - [[#usb-installation-image][USB Installation Image]]
 - [[#profile-management][Profile Management]]
   - [[#activating-profiles][Activating Profiles]]
@@ -47,9 +44,6 @@ I also generate my real =.config/guix/channels.scm= file based on this =base-cha
    ;; NOTE: This file is generated from ~/.dotfiles/System.org.  Please see commentary there.
 
   (list (channel
-         (name 'channel-x)
-         (url "file:///home/daviwil/Projects/Code/channel-x"))
-        (channel
          (name 'flat)
          (url "https://github.com/flatwhatson/guix-channel.git")
          (commit
@@ -126,13 +120,11 @@ sudo -E guix system -L ~/.dotfiles/.config/guix/systems reconfigure ~/.dotfiles/
   #:use-module (srfi srfi-1)
   #:use-module (gnu system nss)
   #:use-module (gnu services pm)
-  #:use-module (gnu services cups)
   #:use-module (gnu services desktop)
   #:use-module (gnu services docker)
   #:use-module (gnu services networking)
   #:use-module (gnu services virtualization)
   #:use-module (gnu packages wm)
-  #:use-module (gnu packages cups)
   #:use-module (gnu packages vim)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages xorg)
@@ -323,11 +315,6 @@ Define the =base-operating-system= which will be inherited by all machine config
                              (libvirt-configuration
                               (unix-sock-group "libvirt")
                               (tls-port "16555")))
-                    (service cups-service-type
-                             (cups-configuration
-                               (web-interface? #t)
-                               (extensions
-                                 (list cups-filters))))
                     (service nix-service-type)
                     (bluetooth-service #:auto-enable? #t)
                     (remove (lambda (service)
@@ -341,19 +328,17 @@ Define the =base-operating-system= which will be inherited by all machine config
 
 ** Machines
 
-Because I'm lame, all of my machines are named from characters, things, and places from the movie Hackers.
-
 *** Per-System Settings
 
 Some settings need to be customized on a per-system basis without tweaking individual configuration files.  Thanks to org-mode's =noweb= functionality, I can define a set of variables that can be tweaked for each system and applied across these configuration files when they get generated.
 
-I also define a function called =dw/system-settings-get= which can retrieve these settings appropriately.
+I also define a function called =bw/system-settings-get= which can retrieve these settings appropriately.
 
 #+begin_src emacs-lisp :tangle .emacs.d/per-system-settings.el :noweb yes
 
 (require 'map) ;; Needed for map-merge
 
-(setq dw/system-settings
+(setq bw/system-settings
   (map-merge
     'list
     '((desktop/dpi . 180)
@@ -374,62 +359,24 @@ I also define a function called =dw/system-settings-get= which can retrieve thes
 
 #+end_src
 
-*** zerocool
+*** crustynubbin
 
-=zerocool= is a 5th Generation ThinkPad X1 Carbon that I use for system testing and Guix demonstrations for System Crafters.
+=crustynubbin= is an old X220 I am using as a system testbed.
 
-*.config/guix/systems/zerocool.scm:*
+*.config/guix/systems/crustynubbin.scm:*
 
-#+begin_src scheme :tangle .config/guix/systems/zerocool.scm
-
-;; NOTE: This file is generated from ~/.dotfiles/System.org.  Please see commentary there.
-
-(define-module (zerocool)
-  #:use-module (base-system)
-  #:use-module (gnu))
-
-(operating-system
- (inherit base-operating-system)
- (host-name "zerocool")
-
- (mapped-devices
-  (list (mapped-device
-         (source (uuid "039d3ff8-0f90-40bf-89d2-4b2454ada6df"))
-         (target "system-root")
-         (type luks-device-mapping))))
-
- (file-systems (cons*
-                (file-system
-                 (device (file-system-label "zerocool"))
-                 (mount-point "/")
-                 (type "ext4")
-                 (dependencies mapped-devices))
-                (file-system
-                 (device "/dev/nvme0n1p1")
-                 (mount-point "/boot/efi")
-                 (type "vfat"))
-                %base-file-systems)))
-
-#+end_src
-
-*** acidburn
-
-=acidburn= is a 1st Generation ThinkPad X1 Nano that I use for most of my writing and hacking at home.
-
-*.config/guix/systems/acidburn.scm:*
-
-#+begin_src scheme :tangle .config/guix/systems/acidburn.scm
+#+begin_src scheme :tangle .config/guix/systems/crustynubbin.scm
 
   ;; NOTE: This file is generated from ~/.dotfiles/System.org.  Please see commentary there.
 
-  (define-module (acidburn)
+  (define-module (crustynubbin)
     #:use-module (base-system)
     #:use-module (gnu)
     #:use-module (nongnu packages linux))
 
   (operating-system
    (inherit base-operating-system)
-   (host-name "acidburn")
+   (host-name "crustynubbin")
 
    (firmware (list linux-firmware sof-firmware))
 
@@ -457,7 +404,7 @@ I also define a function called =dw/system-settings-get= which can retrieve thes
 
 #+begin_src emacs-lisp :noweb-ref system-settings :noweb-sep ""
 
-  (when (equal system-name "acidburn")
+  (when (equal system-name "crustynubbin")
     '((desktop/dpi . 180)
       (emacs/default-face-size . 190)
       (emacs/variable-face-size . 200)
@@ -472,120 +419,6 @@ I also define a function called =dw/system-settings-get= which can retrieve thes
       (vimb/default-zoom . 160)
       (qutebrowser/default-zoom . 180)))
 
-
-#+end_src
-
-*** davinci
-
-=davinci= is a ThinkPad T480s that I use at my day job.
-
-*.config/guix/systems/davinci.scm:*
-
-#+begin_src scheme :tangle .config/guix/systems/davinci.scm
-
-;; NOTE: This file is generated from ~/.dotfiles/System.org.  Please see commentary there.
-
-(define-module (davinci)
-  #:use-module (base-system)
-  #:use-module (gnu))
-
-(operating-system
- (inherit base-operating-system)
- (host-name "davinci")
-
- (mapped-devices
-  (list (mapped-device
-         (source (uuid "eaba53d9-d7e5-4129-82c8-df28bfe6527e"))
-         (target "system-root")
-         (type luks-device-mapping))))
-
- (file-systems (cons*
-                (file-system
-                 (device (file-system-label "system-root"))
-                 (mount-point "/")
-                 (type "ext4")
-                 (dependencies mapped-devices))
-                (file-system
-                 (device "/dev/nvme0n1p2")
-                 (mount-point "/boot/efi")
-                 (type "vfat"))
-                %base-file-systems)))
-
-#+end_src
-
-*System Settings*
-
-#+begin_src emacs-lisp :noweb-ref system-settings :noweb-sep ""
-
-  (when (equal system-name "davinci")
-    '((desktop/dpi . 130)
-      (emacs/default-face-size . 165)
-      (emacs/fixed-face-size . 165)
-      (emacs/variable-face-size . 190)
-      (polybar/height . 25)
-      (polybar/font-0-size . 12)
-      (polybar/font-1-size . 8)
-      (polybar/font-2-size . 14)
-      (polybar/font-3-size . 9)
-      (dunst/font-size . 14)
-      (dunst/max-icon-size . 64)
-      (vimb/default-zoom . 150)
-      (qutebrowser/default-zoom . 150)))
-
-  ;; When booted into Windows
-  (when (equal system-name "daviwil-t480")
-    '((emacs/default-face-size . 110)
-      (emacs/fixed-face-size . 110)
-      (emacs/variable-face-size . 134)))
-
-#+end_src
-
-*** phantom
-
-=phantom= is a ThinkPad X1 Extreme that I use for music production and video editing.  For whatever reason, loading the =nouveau= driver crashes the machine upon booting so I've blacklisted it for now until I figure out how to get it working correctly.
-
-*.config/guix/systems/phantom.scm:*
-
-#+begin_src scheme :tangle .config/guix/systems/phantom.scm
-
-;; NOTE: This file is generated from ~/.dotfiles/System.org.  Please see commentary there.
-
-(define-module (phantom)
-  #:use-module (base-system)
-  #:use-module (gnu))
-
-(operating-system
- (inherit base-operating-system)
- (host-name "phantom")
-
- (mapped-devices
-  (list (mapped-device
-         (source (uuid "091b8ad5-efb3-4c5b-8370-7db99c404a30"))
-         (target "system-root")
-         (type luks-device-mapping))))
-
- (file-systems (cons*
-                (file-system
-                 (device (file-system-label "system-root"))
-                 (mount-point "/")
-                 (type "ext4")
-                 (dependencies mapped-devices))
-                (file-system
-                 (device "/dev/nvme0n1p1")
-                 (mount-point "/boot/efi")
-                 (type "vfat"))
-                %base-file-systems)))
-
-#+end_src
-
-*System Settings*
-
-#+begin_src emacs-lisp :noweb-ref system-settings :noweb-sep ""
-
-(when (equal system-name "phantom")
-  '((desktop/dpi . 240)
-    (polybar/height . 40)
-    (vimb/default-zoom . 200)))
 
 #+end_src
 
@@ -844,7 +677,7 @@ Updating my dotfiles requires running a script in Emacs to loop over all of my l
 #+begin_src emacs-lisp :tangle .emacs.d/tangle-dotfiles.el
 
   (require 'org)
-  (load-file "~/.dotfiles/.emacs.d/lisp/dw-settings.el")
+  (load-file "~/.dotfiles/.emacs.d/lisp/bw-settings.el")
 
   ;; Don't ask when evaluating code blocks
   (setq org-confirm-babel-evaluate nil)
@@ -852,16 +685,16 @@ Updating my dotfiles requires running a script in Emacs to loop over all of my l
   (let* ((dotfiles-path (expand-file-name "~/.dotfiles"))
 	 (org-files (directory-files dotfiles-path nil "\\.org$")))
 
-    (defun dw/tangle-org-file (org-file)
+    (defun bw/tangle-org-file (org-file)
       (message "\n\033[1;32mUpdating %s\033[0m\n" org-file)
       (org-babel-tangle-file (expand-file-name org-file dotfiles-path)))
 
     ;; Tangle Systems.org first
-    (dw/tangle-org-file "Systems.org")
+    (bw/tangle-org-file "Systems.org")
 
     (dolist (org-file org-files)
       (unless (member org-file '("README.org" "Systems.org"))
-      	(dw/tangle-org-file org-file))))
+      	(bw/tangle-org-file org-file))))
 
 #+end_src
 
@@ -887,7 +720,7 @@ Installing packages:
 
 #+begin_src sh
 
-nix-env -i nodejs dotnet-sdk gh hledger
+nix-env -i nodejs
 # nix-env -iA nixpkgs.nodejs-12_x # For a specific version
 
 #+end_src
@@ -904,7 +737,7 @@ Since I use modern Thinkpads, I have to use the non-free kernel and firmware blo
 
   # Create a slightly larger install image to have some headroom
   # for temporary file creation and avoid "no space free" errors
-  guix system image ./install.scm --image-size=5G
+  guix system image .config/guix/systems/install.scm --image-size=5G
 
 #+end_src
 
