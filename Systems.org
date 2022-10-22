@@ -393,7 +393,7 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
                    (type "ext4")
                    (dependencies mapped-devices))
                   (file-system
-                   (device "/dev/nvme0n1p1")
+                   (device "/dev/sda1")
                    (mount-point "/boot/efi")
                    (type "vfat"))
                   %base-file-systems)))
