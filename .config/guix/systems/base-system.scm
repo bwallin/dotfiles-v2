@@ -79,8 +79,7 @@ EndSection
 (define-public base-operating-system
   (operating-system
     (host-name "hackstock")
-    ;(timezone "America/Los_Angeles")
-    (timezone "Europe/Athens")
+    (timezone "America/Denver")
     (locale "en_US.utf8")
 
     ;; Use non-free Linux and firmware
@@ -95,8 +94,8 @@ EndSection
     ;; Use the UEFI variant of GRUB with the EFI System
     ;; Partition mounted on /boot/efi.
     (bootloader (bootloader-configuration
-                 (bootloader grub-efi-bootloader)
-                 (targets '("/boot/efi"))
+                 (bootloader grub-bootloader)
+                 (targets (list "/dev/sda"))
                  (keyboard-layout keyboard-layout)))
 
 

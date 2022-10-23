@@ -218,8 +218,7 @@ Define the =base-operating-system= which will be inherited by all machine config
 (define-public base-operating-system
   (operating-system
     (host-name "hackstock")
-    ;(timezone "America/Los_Angeles")
-    (timezone "Europe/Athens")
+    (timezone "America/Denver")
     (locale "en_US.utf8")
 
     ;; Use non-free Linux and firmware
@@ -234,8 +233,8 @@ Define the =base-operating-system= which will be inherited by all machine config
     ;; Use the UEFI variant of GRUB with the EFI System
     ;; Partition mounted on /boot/efi.
     (bootloader (bootloader-configuration
-                 (bootloader grub-efi-bootloader)
-                 (targets '("/boot/efi"))
+                 (bootloader grub-bootloader)
+                 (targets (list "/dev/sda"))
                  (keyboard-layout keyboard-layout)))
 
 
@@ -378,11 +377,16 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
    (inherit base-operating-system)
    (host-name "crustynubbin")
 
+    (bootloader (bootloader-configuration
+                 (bootloader grub-bootloader)
+                 (targets (list "/dev/sda"))
+                 (keyboard-layout keyboard-layout)))
+
    (firmware (list linux-firmware sof-firmware))
 
    (mapped-devices
     (list (mapped-device
-           (source (uuid "cec230c1-84dc-4804-bd89-8884982f4e1f"))
+           (source (uuid "FILL ME"))
            (target "system-root")
            (type luks-device-mapping))))
 

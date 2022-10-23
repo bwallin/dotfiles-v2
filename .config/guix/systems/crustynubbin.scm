@@ -9,11 +9,16 @@
  (inherit base-operating-system)
  (host-name "crustynubbin")
 
+  (bootloader (bootloader-configuration
+               (bootloader grub-bootloader)
+               (targets (list "/dev/sda"))
+               (keyboard-layout keyboard-layout)))
+
  (firmware (list linux-firmware sof-firmware))
 
  (mapped-devices
   (list (mapped-device
-         (source (uuid "cec230c1-84dc-4804-bd89-8884982f4e1f"))
+         (source (uuid "FILL ME"))
          (target "system-root")
          (type luks-device-mapping))))
 
