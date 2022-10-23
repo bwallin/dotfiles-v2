@@ -382,7 +382,7 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
 
    (mapped-devices
     (list (mapped-device
-           (source (uuid "15ece913-c423-49aa-ac42-3bad39fdd966"))
+           (source (uuid "cec230c1-84dc-4804-bd89-8884982f4e1f"))
            (target "system-root")
            (type luks-device-mapping))))
 
@@ -862,6 +862,7 @@ Once your channels are set up, you will need to tweak your configuration to refl
 
 #+end_src
 
+TODO At this point you need the tangled system config (
 #+begin_quote
 
 **TIP:** To make it easier to copy the UUID into your config file, you can switch to another tty using =Ctrl-Alt-F4= and press =Enter= to get to another root prompt.  You can then switch back and forth between the previous TTY on =F3=.
