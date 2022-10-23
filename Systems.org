@@ -86,7 +86,7 @@ The following channel list can be used when testing patches to packages and serv
 ;;       (channel
 ;;         (name 'guix)
 ;;         (branch "fix-glu-pkg-config")
-;;         (url "file:///home/daviwil/Projects/Code/guix")
+;;         (url "file:///home/wallinb/Projects/Code/guix")
 ;;         (introduction
 ;;           (make-channel-introduction
 ;;             "d06d5db885e4b8399e878708862fbe3a67f0592c"
@@ -105,7 +105,7 @@ Any configuration that derives from =base-operating-system= must invoke =guix sy
 
 #+begin_src sh
 
-sudo -E guix system -L ~/.dotfiles/.config/guix/systems reconfigure ~/.dotfiles/.config/guix/systems/davinci.scm
+sudo -E guix system -L ~/.dotfiles/.config/guix/systems reconfigure ~/.dotfiles/.config/guix/systems/crustynubbin.scm
 
 #+end_src
 
@@ -229,13 +229,13 @@ Define the =base-operating-system= which will be inherited by all machine config
 
     ;; Choose US English keyboard layout.  The "altgr-intl"
     ;; variant provides dead keys for accented characters.
-    (keyboard-layout (keyboard-layout "us" "altgr-intl" #:model "thinkpad"))
+    (keyboard-layout (keyboard-layout "us" "dvorak" #:model "thinkpad" #:options '("ctrl:nocaps")))
 
     ;; Use the UEFI variant of GRUB with the EFI System
     ;; Partition mounted on /boot/efi.
     (bootloader (bootloader-configuration
                  (bootloader grub-efi-bootloader)
-                 (target "/boot/efi")
+                 (targets '("/boot/efi"))
                  (keyboard-layout keyboard-layout)))
 
 
@@ -250,10 +250,10 @@ Define the =base-operating-system= which will be inherited by all machine config
                    %base-file-systems))
 
     (users (cons (user-account
-                  (name "daviwil")
-                  (comment "David Wilson")
+                  (name "wallinb")
+                  (comment "Bruce Wallin")
                   (group "users")
-                  (home-directory "/home/daviwil")
+                  (home-directory "/home/wallinb")
                   (supplementary-groups '(
                                           "wheel"     ;; sudo
                                           "netdev"    ;; network devices
@@ -862,7 +862,7 @@ Once your channels are set up, you will need to tweak your configuration to refl
 
 #+end_src
 
-TODO At this point you need the tangled system config (
+TODO At this point you need the tangled system config -- not sure how this can be generated in the install environment.
 #+begin_quote
 
 **TIP:** To make it easier to copy the UUID into your config file, you can switch to another tty using =Ctrl-Alt-F4= and press =Enter= to get to another root prompt.  You can then switch back and forth between the previous TTY on =F3=.
@@ -873,7 +873,7 @@ Now you can initialize your system using the following command:
 
 #+begin_src sh
 
-  guix system -L ~/.dotfiles/.config/guix/systems init path/to/config.scm /mnt
+  guix system -L ~/.dotfiles/.config/guix/systems init ~/.dotfiles/.config/guix/systems/<system>.scm /mnt
 
 #+end_src
 

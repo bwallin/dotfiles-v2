@@ -239,13 +239,13 @@ Some parts of the configuration require knowledge of whether Emacs is running on
   (load-file "~/.dotfiles/.emacs.d/lisp/dw-settings.el")
 
   ;; Load settings for the first time
-  (dw/load-system-settings)
+  (bw/load-system-settings)
 
   (require 'subr-x)
-  (setq dw/is-termux
+  (setq bw/is-termux
         (string-suffix-p "Android" (string-trim (shell-command-to-string "uname -a"))))
 
-  (setq dw/is-guix-system (and (eq system-type 'gnu/linux)
+  (setq bw/is-guix-system (and (eq system-type 'gnu/linux)
                                (require 'f)
                                (string-equal (f-read "/etc/issue")
                                              "\nThis is the GNU system.  Welcome.\n")))
@@ -290,11 +290,11 @@ I've recently switched to the excellent [[https://www.emacswiki.org/emacs/SetupE
   (require 'setup)
 
   ;; Uncomment this for debugging purposes
-  ;; (defun dw/log-require (&rest args)
+  ;; (defun bw/log-require (&rest args)
   ;;   (with-current-buffer (get-buffer-create "*require-log*")
   ;;     (insert (format "%s\n"
   ;;                     (file-name-nondirectory (car args))))))
-  ;; (add-to-list 'after-load-functions #'dw/log-require)
+  ;; (add-to-list 'after-load-functions #'bw/log-require)
 
 #+end_src
 
@@ -307,7 +307,7 @@ The =:pkg= keyword will depend on Guix-installed Emacs packages unless the param
   ;; Recipe is always a list
   ;; Install via Guix if length == 1 or :guix t is present
 
-  (defvar dw/guix-emacs-packages '()
+  (defvar bw/guix-emacs-packages '()
     "Contains a list of all Emacs package names that must be
   installed via Guix.")
 
@@ -315,7 +315,7 @@ The =:pkg= keyword will depend on Guix-installed Emacs packages unless the param
   ;; - (org-roam :straight t)
   ;; - (git-gutter :straight git-gutter-fringe)
 
-  (defun dw/filter-straight-recipe (recipe)
+  (defun bw/filter-straight-recipe (recipe)
     (let* ((plist (cdr recipe))
            (name (plist-get plist :straight)))
       (cons (if (and name (not (equal name t)))
@@ -325,13 +325,13 @@ The =:pkg= keyword will depend on Guix-installed Emacs packages unless the param
 
   (setup-define :pkg
     (lambda (&rest recipe)
-      (if (and dw/is-guix-system
+      (if (and bw/is-guix-system
                (or (eq (length recipe) 1)
                    (plist-get (cdr recipe) :guix)))
-          `(add-to-list 'dw/guix-emacs-packages
+          `(add-to-list 'bw/guix-emacs-packages
                         ,(or (plist-get recipe :guix)
                              (concat "emacs-" (symbol-name (car recipe)))))
-        `(straight-use-package ',(dw/filter-straight-recipe recipe))))
+        `(straight-use-package ',(bw/filter-straight-recipe recipe))))
     :documentation "Install RECIPE via Guix or straight.el"
     :shorthand #'cadr)
 
@@ -391,22 +391,22 @@ This keyword causes a body to be executed after other packages/features are load
 I don't want a bunch of transient files showing up as untracked in the Git repo so I move them all to another location.
 
 #+begin_src emacs-lisp
-  
+
   ;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
   (setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
         url-history-file (expand-file-name "url/history" user-emacs-directory))
-  
+
   ;; Use no-littering to automatically set common paths to the new user-emacs-directory
   (setup (:pkg no-littering)
     (require 'no-littering))
-  
+
   ;; Keep customization settings in a temporary file (thanks Ambrevar!)
   (setq custom-file
         (if (boundp 'server-socket-dir)
             (expand-file-name "custom.el" server-socket-dir)
           (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
   (load custom-file t)
-  
+
 #+end_src
 
 *Guix Packages*
@@ -454,11 +454,11 @@ Load up the desktop environment if on a machine that supports it and the =--use-
 
 #+begin_src emacs-lisp
 
-  (setq dw/exwm-enabled (and (not dw/is-termux)
+  (setq bw/exwm-enabled (and (not bw/is-termux)
                              (eq window-system 'x)
                              (seq-contains command-line-args "--use-exwm")))
 
-  (when dw/exwm-enabled
+  (when bw/exwm-enabled
     (require 'dw-desktop))
 
 #+end_src
@@ -538,20 +538,20 @@ Some tips can be found here:
     (evil-global-set-key 'motion "j" 'evil-next-visual-line)
     (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-    (unless dw/is-termux
-      (defun dw/dont-arrow-me-bro ()
+    (unless bw/is-termux
+      (defun bw/dont-arrow-me-bro ()
         (interactive)
         (message "Arrow keys are bad, you know?"))
 
       ;; Disable arrow keys in normal and visual modes
-      (define-key evil-normal-state-map (kbd "<left>") 'dw/dont-arrow-me-bro)
-      (define-key evil-normal-state-map (kbd "<right>") 'dw/dont-arrow-me-bro)
-      (define-key evil-normal-state-map (kbd "<down>") 'dw/dont-arrow-me-bro)
-      (define-key evil-normal-state-map (kbd "<up>") 'dw/dont-arrow-me-bro)
-      (evil-global-set-key 'motion (kbd "<left>") 'dw/dont-arrow-me-bro)
-      (evil-global-set-key 'motion (kbd "<right>") 'dw/dont-arrow-me-bro)
-      (evil-global-set-key 'motion (kbd "<down>") 'dw/dont-arrow-me-bro)
-      (evil-global-set-key 'motion (kbd "<up>") 'dw/dont-arrow-me-bro))
+      (define-key evil-normal-state-map (kbd "<left>") 'bw/dont-arrow-me-bro)
+      (define-key evil-normal-state-map (kbd "<right>") 'bw/dont-arrow-me-bro)
+      (define-key evil-normal-state-map (kbd "<down>") 'bw/dont-arrow-me-bro)
+      (define-key evil-normal-state-map (kbd "<up>") 'bw/dont-arrow-me-bro)
+      (evil-global-set-key 'motion (kbd "<left>") 'bw/dont-arrow-me-bro)
+      (evil-global-set-key 'motion (kbd "<right>") 'bw/dont-arrow-me-bro)
+      (evil-global-set-key 'motion (kbd "<down>") 'bw/dont-arrow-me-bro)
+      (evil-global-set-key 'motion (kbd "<up>") 'bw/dont-arrow-me-bro))
 
     (evil-set-initial-state 'messages-buffer-mode 'normal)
     (evil-set-initial-state 'dashboard-mode 'normal))
@@ -609,12 +609,12 @@ in conjunction with Evil modes.
   (setup (:pkg general)
     (general-evil-setup t)
 
-    (general-create-definer dw/leader-key-def
+    (general-create-definer bw/leader-key-def
       :keymaps '(normal insert visual emacs)
       :prefix "SPC"
       :global-prefix "C-SPC")
 
-    (general-create-definer dw/ctrl-c-keys
+    (general-create-definer bw/ctrl-c-keys
       :prefix "C-c"))
 
 #+end_src
@@ -638,7 +638,7 @@ Clean up Emacs' user interface, make it more minimal.
   ;; Thanks, but no thanks
   (setq inhibit-startup-message t)
 
-  (unless dw/is-termux
+  (unless bw/is-termux
     (scroll-bar-mode -1)        ; Disable visible scrollbar
     (tool-bar-mode -1)          ; Disable the toolbar
     (tooltip-mode -1)           ; Disable tooltips
@@ -655,7 +655,7 @@ Improve scrolling.
 
 #+begin_src emacs-lisp
 
-  (unless dw/is-termux
+  (unless bw/is-termux
     (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
     (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
     (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
@@ -668,7 +668,7 @@ Set frame transparency and maximize windows by default.
 
 #+begin_src emacs-lisp
 
-  (unless dw/is-termux
+  (unless bw/is-termux
     (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
     (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
     (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
@@ -733,7 +733,7 @@ Alternate themes:
 
   (setup (:pkg spacegray-theme))
   (setup (:pkg doom-themes))
-  (unless dw/is-termux
+  (unless bw/is-termux
     (load-theme 'doom-palenight t)
     (doom-themes-visual-bell-config))
 
@@ -762,20 +762,20 @@ Different platforms need different default font sizes, and [[https://mozilla.git
      (set-face-attribute 'default nil
                          :font "JetBrains Mono"
                          :weight 'light
-                         :height (dw/system-settings-get 'emacs/default-face-size)))
+                         :height (bw/system-settings-get 'emacs/default-face-size)))
     ('darwin (set-face-attribute 'default nil :font "Fira Mono" :height 170)))
 
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil
                       :font "JetBrains Mono"
                       :weight 'light
-                      :height (dw/system-settings-get 'emacs/fixed-face-size))
+                      :height (bw/system-settings-get 'emacs/fixed-face-size))
 
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil
                       ;; :font "Cantarell"
                       :font "Iosevka Aile"
-                      :height (dw/system-settings-get 'emacs/variable-face-size)
+                      :height (bw/system-settings-get 'emacs/variable-face-size)
                       :weight 'light)
 
 #+end_src
@@ -786,7 +786,7 @@ This is currently disabled because I was having issues with Emacs 28 crashing wh
 
 #+begin_src emacs-lisp :tangle no
 
-  (defun dw/replace-unicode-font-mapping (block-name old-font new-font)
+  (defun bw/replace-unicode-font-mapping (block-name old-font new-font)
     (let* ((block-idx (cl-position-if
                            (lambda (i) (string-equal (car i) block-name))
                            unicode-fonts-block-font-mapping))
@@ -796,14 +796,14 @@ This is currently disabled because I was having issues with Emacs 28 crashing wh
             `(,updated-block))))
 
   (setup (:pkg unicode-fonts)
-    :if (not dw/is-termux)
+    :if (not bw/is-termux)
     :custom
     (unicode-fonts-skip-font-groups '(low-quality-glyphs))
     :config
     ;; Fix the font mappings to use the right emoji font
     (mapcar
       (lambda (block-name)
-        (dw/replace-unicode-font-mapping block-name "Apple Color Emoji" "Noto Color Emoji"))
+        (bw/replace-unicode-font-mapping block-name "Apple Color Emoji" "Noto Color Emoji"))
       '("Dingbats"
         "Emoticons"
         "Miscellaneous Symbols and Pictographs"
@@ -861,13 +861,13 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
 *** Doom Modeline
 
 #+begin_src emacs-lisp
-  
+
     ;; You must run (all-the-icons-install-fonts) one time after
     ;; installing this package!
-  
+
   (setup (:pkg minions)
     (:hook-into doom-modeline-mode))
-  
+
   (setup (:pkg doom-modeline)
     (:hook-into after-init-hook)
     (:option doom-modeline-height 15
@@ -882,7 +882,7 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
              doom-modeline-major-mode-icon nil)
     (custom-set-faces '(mode-line ((t (:height 0.85))))
                       '(mode-line-inactive ((t (:height 0.85))))))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -940,14 +940,14 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
 ** Auto-Saving Changed Files
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg super-save)
     (:delay)
     (:when-loaded
       (super-save-mode +1)
       (diminish 'super-save-mode)
       (setq super-save-auto-save-when-idle t)))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -974,7 +974,7 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
 
 #+begin_src emacs-lisp
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "t"  '(:ignore t :which-key "toggles")
     "tw" 'whitespace-mode
     "tt" '(counsel-load-theme :which-key "choose theme"))
@@ -1017,7 +1017,7 @@ Emacs can be prompted for the PIN of GPG private keys, we just need to set
 
 #+begin_src emacs-lisp
 
-  (unless (or dw/is-termux
+  (unless (or bw/is-termux
               (eq system-type 'windows-nt))
     (setq epa-pinentry-mode 'loopback)
     (pinentry-start))
@@ -1045,15 +1045,15 @@ Emacs can be prompted for the PIN of GPG private keys, we just need to set
 ** Emacs as External Editor
 
 #+begin_src emacs-lisp
-  
-  (defun dw/show-server-edit-buffer (buffer)
+
+  (defun bw/show-server-edit-buffer (buffer)
     ;; TODO: Set a transient keymap to close with 'C-c C-c'
     (split-window-vertically -15)
     (other-window 1)
     (set-buffer buffer))
-  
-  ;; (setq server-window #'dw/show-server-edit-buffer)
-  
+
+  ;; (setq server-window #'bw/show-server-edit-buffer)
+
 #+end_src
 
 * Editing Configuration
@@ -1129,7 +1129,7 @@ Default to an indentation size of 2 spaces since it's the norm for pretty much e
              smart-tab               ; C-b & C-f jump positions and smart shift with tab & S-tab.
              smart-yank))            ; Yank behavior depend on mode.
 
-    (dw/leader-key-def
+    (bw/leader-key-def
       "tp" 'parinfer-toggle-mode))
 
 #+end_src
@@ -1186,7 +1186,7 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
 
 #+begin_src emacs-lisp
 
-  (defun dw/org-file-jump-to-heading (org-file heading-title)
+  (defun bw/org-file-jump-to-heading (org-file heading-title)
     (interactive)
     (find-file (expand-file-name org-file))
     (goto-char (point-min))
@@ -1196,7 +1196,7 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
     (org-show-subtree)
     (forward-line))
 
-  (defun dw/org-file-show-headings (org-file)
+  (defun bw/org-file-show-headings (org-file)
     (interactive)
     (find-file (expand-file-name org-file))
     (counsel-org-goto)
@@ -1211,17 +1211,17 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
 
 #+begin_src emacs-lisp
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "fn" '((lambda () (interactive) (counsel-find-file "~/Notes/")) :which-key "notes")
     "fd"  '(:ignore t :which-key "dotfiles")
     "fdd" '((lambda () (interactive) (find-file "~/.dotfiles/Desktop.org")) :which-key "desktop")
     "fde" '((lambda () (interactive) (find-file (expand-file-name "~/.dotfiles/Emacs.org"))) :which-key "edit config")
-    "fdE" '((lambda () (interactive) (dw/org-file-show-headings "~/.dotfiles/Emacs.org")) :which-key "edit config")
+    "fdE" '((lambda () (interactive) (bw/org-file-show-headings "~/.dotfiles/Emacs.org")) :which-key "edit config")
     "fdm" '((lambda () (interactive) (find-file "~/.dotfiles/Mail.org")) :which-key "mail")
     "fdM" '((lambda () (interactive) (counsel-find-file "~/.dotfiles/.config/guix/manifests/")) :which-key "manifests")
-    "fds" '((lambda () (interactive) (dw/org-file-jump-to-heading "~/.dotfiles/Systems.org" "Base Configuration")) :which-key "base system")
-    "fdS" '((lambda () (interactive) (dw/org-file-jump-to-heading "~/.dotfiles/Systems.org" system-name)) :which-key "this system")
-    "fdp" '((lambda () (interactive) (dw/org-file-jump-to-heading "~/.dotfiles/Desktop.org" "Panel via Polybar")) :which-key "polybar")
+    "fds" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Systems.org" "Base Configuration")) :which-key "base system")
+    "fdS" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Systems.org" system-name)) :which-key "this system")
+    "fdp" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Desktop.org" "Panel via Polybar")) :which-key "polybar")
     "fdw" '((lambda () (interactive) (find-file (expand-file-name "~/.dotfiles/Workflow.org"))) :which-key "workflow")
     "fdv" '((lambda () (interactive) (find-file "~/.dotfiles/.config/vimb/config")) :which-key "vimb"))
 
@@ -1230,10 +1230,10 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
 * Stateful Keymaps with Hydra
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg hydra)
     (require 'hydra))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1251,23 +1251,23 @@ Trying this as an alternative to Ivy and Counsel.
 ** Preserve Minibuffer History with savehist-mode
 
 #+begin_src emacs-lisp
-  
+
   (setup savehist
     (setq history-length 25)
     (savehist-mode 1))
-  
+
   ;; Individual history elements can be configured separately
   ;;(put 'minibuffer-history 'history-length 25)
   ;;(put 'evil-ex-history 'history-length 50)
   ;;(put 'kill-ring 'history-length 25))
-  
+
 #+end_src
 
 ** Completions with Vertico
 
 #+begin_src emacs-lisp
 
-  (defun dw/minibuffer-backward-kill (arg)
+  (defun bw/minibuffer-backward-kill (arg)
     "When minibuffer is completing a file name delete up to parent
   folder, otherwise delete a word"
     (interactive "p")
@@ -1288,7 +1288,7 @@ Trying this as an alternative to Ivy and Counsel.
              "C-k" vertico-previous
              "C-f" vertico-exit))
     (:with-map minibuffer-local-map
-      (:bind "M-h" dw/minibuffer-backward-kill))
+      (:bind "M-h" bw/minibuffer-backward-kill))
     (:option vertico-cycle t)
     (custom-set-faces '(vertico-current ((t (:background "#3a3f5a"))))))
 
@@ -1320,13 +1320,13 @@ Trying this as an alternative to Ivy and Counsel.
 ** Improved Candidate Filtering with Orderless
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg orderless)
     (require 'orderless)
     (setq completion-styles '(orderless)
           completion-category-defaults nil
           completion-category-overrides '((file (styles . (partial-completion))))))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1342,23 +1342,23 @@ Trying this as an alternative to Ivy and Counsel.
 Consult provides a lot of useful completion commands similar to Ivy's Counsel.
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg consult)
     (require 'consult)
     (:global "C-s" consult-line
              "C-M-l" consult-imenu
              "C-M-j" persp-switch-to-buffer*)
-  
+
     (:with-map minibuffer-local-map
       (:bind "C-r" consult-history))
-  
-    (defun dw/get-project-root ()
+
+    (defun bw/get-project-root ()
       (when (fboundp 'projectile-project-root)
         (projectile-project-root)))
-  
-    (:option consult-project-root-function #'dw/get-project-root
+
+    (:option consult-project-root-function #'bw/get-project-root
              completion-in-region-function #'consult-completion-in-region))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1451,10 +1451,10 @@ Marginalia provides helpful annotations for various types of minibuffer completi
 ** Launching apps
 
 #+begin_src emacs-lisp
-  
+
   ;; Binding will be set by desktop config
   (setup (:pkg app-launcher))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1470,7 +1470,7 @@ Marginalia provides helpful annotations for various types of minibuffer completi
 #+begin_src emacs-lisp
 
   (setup (:pkg avy)
-    (dw/leader-key-def
+    (bw/leader-key-def
       "j"   '(:ignore t :which-key "jump")
       "jj"  '(avy-goto-char :which-key "jump to char")
       "jw"  '(avy-goto-word-0 :which-key "jump to word")
@@ -1640,7 +1640,7 @@ Emacs' default buffer placement algorithm is pretty disruptive if you like setti
 
 #+begin_src emacs-lisp
 
-  (defun dw/popper-window-height (window)
+  (defun bw/popper-window-height (window)
     (let (buffer-mode (with-current-buffer (window-buffer window)
                         major-mode))
       (pcase buffer-mode
@@ -1683,7 +1683,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
 
   (setup (:pkg password-store)
     (setq password-store-password-length 12)
-    (dw/leader-key-def
+    (bw/leader-key-def
       "ap" '(:ignore t :which-key "pass")
       "app" 'password-store-copy
       "api" 'password-store-insert
@@ -1693,7 +1693,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
     (auth-source-pass-enable))
 
   (setup (:pkg oauth2 :straight t))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1735,7 +1735,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
                 (interactive)
                 (dired-omit-mode 1)
                 (dired-hide-details-mode 1)
-                (unless (or dw/is-termux
+                (unless (or bw/is-termux
                             (s-equals? "/gnu/store/" (expand-file-name default-directory)))
                   (all-the-icons-dired-mode 1))
                 (hl-line-mode 1)))
@@ -1771,20 +1771,20 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
      (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
      (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")))
 
-  ;; (defun dw/dired-link (path)
+  ;; (defun bw/dired-link (path)
   ;;   (lexical-let ((target path))
   ;;     (lambda () (interactive) (message "Path: %s" target) (dired target))))
 
-  ;; (dw/leader-key-def
+  ;; (bw/leader-key-def
   ;;   "d"   '(:ignore t :which-key "dired")
   ;;   "dd"  '(dired :which-key "Here")
-  ;;   "dh"  `(,(dw/dired-link "~") :which-key "Home")
-  ;;   "dn"  `(,(dw/dired-link "~/Notes") :which-key "Notes")
-  ;;   "do"  `(,(dw/dired-link "~/Downloads") :which-key "Downloads")
-  ;;   "dp"  `(,(dw/dired-link "~/Pictures") :which-key "Pictures")
-  ;;   "dv"  `(,(dw/dired-link "~/Videos") :which-key "Videos")
-  ;;   "d."  `(,(dw/dired-link "~/.dotfiles") :which-key "dotfiles")
-  ;;   "de"  `(,(dw/dired-link "~/.emacs.d") :which-key ".emacs.d"))
+  ;;   "dh"  `(,(bw/dired-link "~") :which-key "Home")
+  ;;   "dn"  `(,(bw/dired-link "~/Notes") :which-key "Notes")
+  ;;   "do"  `(,(bw/dired-link "~/Downloads") :which-key "Downloads")
+  ;;   "dp"  `(,(bw/dired-link "~/Pictures") :which-key "Pictures")
+  ;;   "dv"  `(,(bw/dired-link "~/Videos") :which-key "Videos")
+  ;;   "d."  `(,(bw/dired-link "~/.dotfiles") :which-key "dotfiles")
+  ;;   "de"  `(,(bw/dired-link "~/.emacs.d") :which-key ".emacs.d"))
 
 #+end_src
 
@@ -1803,7 +1803,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
 #+begin_src emacs-lisp
 
   (setup (:pkg openwith)
-    (unless dw/is-termux
+    (unless bw/is-termux
       (require 'openwith)
       (setq openwith-associations
             (list
@@ -1843,26 +1843,26 @@ Set up Org Mode with a baseline configuration.  The following sections will add 
 I document and configure my org-mode workflow in a separate document: [[file:Workflow.org][Workflow.org]]
 
 #+begin_src emacs-lisp
-  
+
   ;; TODO: Mode this to another section
   (setq-default fill-column 80)
-  
+
   ;; Turn on indentation and auto-fill mode for Org files
-  (defun dw/org-mode-setup ()
+  (defun bw/org-mode-setup ()
     (org-indent-mode)
     (variable-pitch-mode 1)
     (auto-fill-mode 0)
     (visual-line-mode 1)
     (setq evil-auto-indent nil)
     (diminish org-indent-mode))
-  
+
   ;; Make sure Straight pulls Org from Guix
-  (when dw/is-guix-system
+  (when bw/is-guix-system
     (straight-use-package '(org :type built-in)))
-  
+
   (setup (:pkg org)
     (:also-load org-tempo dw-org dw-workflow)
-    (:hook dw/org-mode-setup)
+    (:hook bw/org-mode-setup)
     (setq org-ellipsis " ▾"
           org-hide-emphasis-markers t
           org-src-fontify-natively t
@@ -1874,33 +1874,33 @@ I document and configure my org-mode workflow in a separate document: [[file:Wor
           org-startup-folded 'content
           org-cycle-separator-lines 2
           org-capture-bookmark nil)
-  
+
     (setq org-modules
       '(org-crypt
           org-habit
           org-bookmark
           org-eshell
           org-irc))
-  
+
     (setq org-refile-targets '((nil :maxlevel . 1)
                                (org-agenda-files :maxlevel . 1)))
-  
+
     (setq org-outline-path-complete-in-steps nil)
     (setq org-refile-use-outline-path t)
-  
+
     (evil-define-key '(normal insert visual) org-mode-map (kbd "C-j") 'org-next-visible-heading)
     (evil-define-key '(normal insert visual) org-mode-map (kbd "C-k") 'org-previous-visible-heading)
-  
+
     (evil-define-key '(normal insert visual) org-mode-map (kbd "M-j") 'org-metadown)
     (evil-define-key '(normal insert visual) org-mode-map (kbd "M-k") 'org-metaup)
-  
+
     (org-babel-do-load-languages
       'org-babel-load-languages
       '((emacs-lisp . t)
         (ledger . t)))
-  
+
     (push '("conf-unix" . conf-unix) org-src-lang-modes))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1916,26 +1916,26 @@ I document and configure my org-mode workflow in a separate document: [[file:Wor
 Use bullet characters instead of asterisks, plus set the header font sizes to something more palatable.  A fair amount of inspiration has been taken from [[https://zzamboni.org/post/beautifying-org-mode-in-emacs/][this blog post]].
 
 #+begin_src emacs-lisp
-  
-  (unless dw/is-termux
+
+  (unless bw/is-termux
     (setup (:pkg org-superstar)
       (:load-after org)
       (:hook-into org-mode)
       (:option org-superstar-remove-leading-stars t
                org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●"))))
-  
+
   ;; Replace list hyphen with dot
   ;; (font-lock-add-keywords 'org-mode
   ;;                         '(("^ *\\([-]\\) "
   ;;                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-  
+
   (setup org-faces
     ;; Make sure org-indent face is available
     (:also-load org-indent)
     (:when-loaded
       ;; Increase the size of various headings
       (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
-    
+
       (dolist (face '((org-level-1 . 1.2)
                       (org-level-2 . 1.1)
                       (org-level-3 . 1.05)
@@ -1945,7 +1945,7 @@ Use bullet characters instead of asterisks, plus set the header font sizes to so
                       (org-level-7 . 1.1)
                       (org-level-8 . 1.1)))
         (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
-  
+
       ;; Ensure that anything that should be fixed-pitch in Org files appears that way
       (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
       (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
@@ -1956,11 +1956,11 @@ Use bullet characters instead of asterisks, plus set the header font sizes to so
       (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
       (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
       (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-  
+
       ;; Get rid of the background on column views
       (set-face-attribute 'org-column nil :background nil)
       (set-face-attribute 'org-column-title nil :background nil)))
-  
+
   ;; TODO: Others to consider
   ;; '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
   ;; '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
@@ -1969,7 +1969,7 @@ Use bullet characters instead of asterisks, plus set the header font sizes to so
   ;; '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
   ;; '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
   ;; '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -1987,7 +1987,7 @@ the template.  More documentation can be found at the Org Mode [[https://orgmode
 documentation page.
 
 #+begin_src emacs-lisp
-  
+
   ;; This is needed as of Org 9.2
   (setup org-tempo
     (:when-loaded
@@ -2000,7 +2000,7 @@ documentation page.
       (add-to-list 'org-structure-template-alist '("go" . "src go"))
       (add-to-list 'org-structure-template-alist '("yaml" . "src yaml"))
       (add-to-list 'org-structure-template-alist '("json" . "src json"))))
-  
+
 #+end_src
 
 ** Pomodoro
@@ -2013,7 +2013,7 @@ documentation page.
     (setq org-pomodoro-long-break-sound "~/.dotfiles/.emacs.d/sounds/three_beeps.wav")
     (setq org-pomodoro-finished-sound "~/.dotfiles/.emacs.d/sounds/meditation_bell.wav")
 
-    (dw/leader-key-def
+    (bw/leader-key-def
       "op"  '(org-pomodoro :which-key "pomodoro")))
 
 #+end_src
@@ -2048,7 +2048,7 @@ through =emacsclient.=
     (evil-org-set-key-theme '(navigation todo insert textobjects additional))
     (evil-org-agenda-set-keys))
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "o"   '(:ignore t :which-key "org mode")
 
     "oi"  '(:ignore t :which-key "insert")
@@ -2056,7 +2056,7 @@ through =emacsclient.=
 
     "on"  '(org-toggle-narrow-to-subtree :which-key "toggle narrow")
 
-    "os"  '(dw/counsel-rg-org-files :which-key "search notes")
+    "os"  '(bw/counsel-rg-org-files :which-key "search notes")
 
     "oa"  '(org-agenda :which-key "status")
     "ot"  '(org-todo-list :which-key "todos")
@@ -2148,12 +2148,12 @@ It's nice to have a table of contents section for long literate configuration fi
 
 #+begin_src emacs-lisp
 
-  (defun dw/org-present-prepare-slide ()
+  (defun bw/org-present-prepare-slide ()
     (org-overview)
     (org-show-entry)
     (org-show-children))
 
-  (defun dw/org-present-hook ()
+  (defun bw/org-present-hook ()
     (setq-local face-remapping-alist '((default (:height 1.5) variable-pitch)
                                        (header-line (:height 4.5) variable-pitch)
                                        (org-document-title (:height 1.75) org-document-title)
@@ -2164,36 +2164,36 @@ It's nice to have a table of contents section for long literate configuration fi
     (setq header-line-format " ")
     (org-appear-mode -1)
     (org-display-inline-images)
-    (dw/org-present-prepare-slide)
-    (dw/kill-panel))
+    (bw/org-present-prepare-slide)
+    (bw/kill-panel))
 
-  (defun dw/org-present-quit-hook ()
+  (defun bw/org-present-quit-hook ()
     (setq-local face-remapping-alist '((default variable-pitch default)))
     (setq header-line-format nil)
     (org-present-small)
     (org-remove-inline-images)
     (org-appear-mode 1)
-    (dw/start-panel))
+    (bw/start-panel))
 
-  (defun dw/org-present-prev ()
+  (defun bw/org-present-prev ()
     (interactive)
     (org-present-prev)
-    (dw/org-present-prepare-slide))
+    (bw/org-present-prepare-slide))
 
-  (defun dw/org-present-next ()
+  (defun bw/org-present-next ()
     (interactive)
     (org-present-next)
-    (dw/org-present-prepare-slide)
+    (bw/org-present-prepare-slide)
     (when (fboundp 'live-crafter-add-timestamp)
       (live-crafter-add-timestamp (substring-no-properties (org-get-heading t t t t)))))
 
   (setup (:pkg org-present)
     (:with-map org-present-mode-keymap
-      (:bind "C-c C-j" dw/org-present-next
-             "C-c C-k" dw/org-present-prev))
-    (:hook dw/org-present-hook)
+      (:bind "C-c C-j" bw/org-present-next
+             "C-c C-k" bw/org-present-prev))
+    (:hook bw/org-present-hook)
     (:with-hook org-present-mode-quit-hook
-      (:hook dw/org-present-quit-hook)))
+      (:hook bw/org-present-quit-hook)))
 
 #+end_src
 
@@ -2209,31 +2209,31 @@ It's nice to have a table of contents section for long literate configuration fi
 ** Org Roam
 
 #+begin_src emacs-lisp
-  
-  (defvar dw/org-roam-project-template
+
+  (defvar bw/org-roam-project-template
     '("p" "project" plain "** TODO %?"
       :if-new (file+head+olp "%<%Y%m%d%H%M%S>-${slug}.org"
                              "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n"
                              ("Tasks"))))
-  
+
   (defun my/org-roam-filter-by-tag (tag-name)
     (lambda (node)
       (member tag-name (org-roam-node-tags node))))
-  
+
   (defun my/org-roam-list-notes-by-tag (tag-name)
     (mapcar #'org-roam-node-file
             (seq-filter
              (my/org-roam-filter-by-tag tag-name)
              (org-roam-node-list))))
-  
+
   (defun org-roam-node-insert-immediate (arg &rest args)
     (interactive "P")
     (let ((args (push arg args))
           (org-roam-capture-templates (list (append (car org-roam-capture-templates)
                                                     '(:immediate-finish t)))))
       (apply #'org-roam-node-insert args)))
-  
-  (defun dw/org-roam-goto-month ()
+
+  (defun bw/org-roam-goto-month ()
     (interactive)
     (org-roam-capture- :goto (when (org-roam-node-from-title-or-alias (format-time-string "%Y-%B")) '(4))
                        :node (org-roam-node-create)
@@ -2241,8 +2241,8 @@ It's nice to have a table of contents section for long literate configuration fi
                                      :if-new (file+head "%<%Y-%B>.org"
                                                         "#+title: %<%Y-%B>\n#+filetags: Project\n")
                                      :unnarrowed t))))
-  
-  (defun dw/org-roam-goto-year ()
+
+  (defun bw/org-roam-goto-year ()
     (interactive)
     (org-roam-capture- :goto (when (org-roam-node-from-title-or-alias (format-time-string "%Y")) '(4))
                        :node (org-roam-node-create)
@@ -2250,23 +2250,23 @@ It's nice to have a table of contents section for long literate configuration fi
                                      :if-new (file+head "%<%Y>.org"
                                                         "#+title: %<%Y>\n#+filetags: Project\n")
                                      :unnarrowed t))))
-  
-  (defun dw/org-roam-capture-task ()
+
+  (defun bw/org-roam-capture-task ()
     (interactive)
     ;; Add the project file to the agenda after capture is finished
     (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
-  
+
     ;; Capture the new task, creating the project file if necessary
     (org-roam-capture- :node (org-roam-node-read
                               nil
                               (my/org-roam-filter-by-tag "Project"))
-                       :templates (list dw/org-roam-project-template)))
-  
+                       :templates (list bw/org-roam-project-template)))
+
   (defun my/org-roam-refresh-agenda-list ()
     (interactive)
     (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
-  
-  (defhydra dw/org-roam-jump-menu (:hint nil)
+
+  (defhydra bw/org-roam-jump-menu (:hint nil)
     "
   ^Dailies^        ^Capture^       ^Jump^
   ^^^^^^^^-------------------------------------------------
@@ -2282,19 +2282,19 @@ It's nice to have a table of contents section for long literate configuration fi
     ("T" org-roam-dailies-capture-today)
     ("R" org-roam-dailies-capture-tomorrow)
     ("Y" org-roam-dailies-capture-yesterday)
-    ("m" dw/org-roam-goto-month)
-    ("e" dw/org-roam-goto-year)
+    ("m" bw/org-roam-goto-month)
+    ("e" bw/org-roam-goto-year)
     ("c" nil "cancel"))
-  
+
   (setup (:pkg org-roam :straight t)
     (setq org-roam-v2-ack t)
-    (setq dw/daily-note-filename "%<%Y-%m-%d>.org"
-          dw/daily-note-header "#+title: %<%Y-%m-%d %a>\n\n[[roam:%<%Y-%B>]]\n\n")
-  
+    (setq bw/daily-note-filename "%<%Y-%m-%d>.org"
+          bw/daily-note-header "#+title: %<%Y-%m-%d %a>\n\n[[roam:%<%Y-%B>]]\n\n")
+
     (:when-loaded
       (org-roam-db-autosync-mode)
       (my/org-roam-refresh-agenda-list))
-  
+
     (:option
      org-roam-directory "~/Notes/Roam/"
      org-roam-dailies-directory "Journal/"
@@ -2307,39 +2307,39 @@ It's nice to have a table of contents section for long literate configuration fi
      org-roam-dailies-capture-templates
      `(("d" "default" entry
         "* %?"
-        :if-new (file+head ,dw/daily-note-filename
-                           ,dw/daily-note-header))
+        :if-new (file+head ,bw/daily-note-filename
+                           ,bw/daily-note-header))
        ("t" "task" entry
         "* TODO %?\n  %U\n  %a\n  %i"
-        :if-new (file+head+olp ,dw/daily-note-filename
-                               ,dw/daily-note-header
+        :if-new (file+head+olp ,bw/daily-note-filename
+                               ,bw/daily-note-header
                                ("Tasks"))
         :empty-lines 1)
        ("l" "log entry" entry
         "* %<%I:%M %p> - %?"
-        :if-new (file+head+olp ,dw/daily-note-filename
-                               ,dw/daily-note-header
+        :if-new (file+head+olp ,bw/daily-note-filename
+                               ,bw/daily-note-header
                                ("Log")))
        ("j" "journal" entry
         "* %<%I:%M %p> - Journal  :journal:\n\n%?\n\n"
-        :if-new (file+head+olp ,dw/daily-note-filename
-                               ,dw/daily-note-header
+        :if-new (file+head+olp ,bw/daily-note-filename
+                               ,bw/daily-note-header
                                ("Log")))
        ("m" "meeting" entry
         "* %<%I:%M %p> - %^{Meeting Title}  :meetings:\n\n%?\n\n"
-        :if-new (file+head+olp ,dw/daily-note-filename
-                               ,dw/daily-note-header
+        :if-new (file+head+olp ,bw/daily-note-filename
+                               ,bw/daily-note-header
                                ("Log")))))
     (:global "C-c n l" org-roam-buffer-toggle
              "C-c n f" org-roam-node-find
-             "C-c n d" dw/org-roam-jump-menu/body
+             "C-c n d" bw/org-roam-jump-menu/body
              "C-c n c" org-roam-dailies-capture-today
-             "C-c n t" dw/org-roam-capture-task
+             "C-c n t" bw/org-roam-capture-task
              "C-c n g" org-roam-graph)
     (:bind "C-c n i" org-roam-node-insert
            "C-c n I" org-roam-insert-immediate))
-  
-  
+
+
 #+end_src
 
 *Guix Packages*
@@ -2438,7 +2438,7 @@ This is an interesting extension to Magit that shows a TODOs section in your git
 
   (setup (:pkg git-link)
     (setq git-link-open-in-browser t)
-    (dw/leader-key-def
+    (bw/leader-key-def
       "gL"  'git-link))
 
 #+end_src
@@ -2460,7 +2460,7 @@ Get rid of non-fringe package?
   (setup (:pkg git-gutter :straight git-gutter-fringe)
     (:hook-into text-mode prog-mode)
     (setq git-gutter:update-interval 2)
-    (unless dw/is-termux
+    (unless bw/is-termux
       (require 'git-gutter-fringe)
       (set-face-foreground 'git-gutter-fr:added "LightGreen")
       (fringe-helper-define 'git-gutter-fr:added nil
@@ -2548,7 +2548,7 @@ OK, this isn't Emacs configuration, but it's relevant to development!
 
 #+begin_src emacs-lisp
 
-  (defun dw/switch-project-action ()
+  (defun bw/switch-project-action ()
     "Switch to a workspace with the project name and start `magit-status'."
     ;; TODO: Switch to EXWM workspace 1?
     (persp-switch (projectile-project-name))
@@ -2557,14 +2557,14 @@ OK, this isn't Emacs configuration, but it's relevant to development!
   (setup (:pkg projectile)
     (when (file-directory-p "~/Projects/Code")
       (setq projectile-project-search-path '("~/Projects/Code")))
-    (setq projectile-switch-project-action #'dw/switch-project-action)
+    (setq projectile-switch-project-action #'bw/switch-project-action)
 
     (projectile-mode)
 
     (:global "C-M-p" projectile-find-file
              "C-c p" projectile-command-map)
 
-    (dw/leader-key-def
+    (bw/leader-key-def
       "pf"  'projectile-find-file
       "ps"  'projectile-switch-project
       "pF"  'consult-ripgrep
@@ -2610,7 +2610,7 @@ This section contains project configurations for specific projects that I can't 
     (:bind "TAB" completion-at-point)
     (:option lsp-headerline-breadcrumb-enable nil)
 
-    (dw/leader-key-def
+    (bw/leader-key-def
       "l" '(:ignore t :which-key "lsp")
       "ld" 'xref-find-definitions
       "lr" 'xref-find-references
@@ -2664,7 +2664,7 @@ Trying out Eglot for a bit to see how I like it compared to lsp-mode.
 *** Debug Adapter Support
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg dap-mode :straight t)
     ;; Assuming that `dap-debug' will invoke all this
     (:when-loaded
@@ -2672,7 +2672,7 @@ Trying out Eglot for a bit to see how I like it compared to lsp-mode.
       (dap-ui-mode 1)
       (dap-tooltip-mode 1)
       (dap-node-setup)))
-  
+
 #+end_src
 
 *** Meta Lisp
@@ -2738,7 +2738,7 @@ Configure TypeScript and JavaScript language modes
     (:file-match "\\.ts\\'")
     (setq typescript-indent-level 2))
 
-  (defun dw/set-js-indentation ()
+  (defun bw/set-js-indentation ()
     (setq-default js-indent-level 2)
     (setq-default evil-shift-width js-indent-level)
     (setq-default tab-width 2))
@@ -2753,8 +2753,8 @@ Configure TypeScript and JavaScript language modes
     (setq js2-mode-show-strict-warnings nil)
 
     ;; Set up proper indentation in JavaScript and JSON files
-    (add-hook 'js2-mode-hook #'dw/set-js-indentation)
-    (add-hook 'json-mode-hook #'dw/set-js-indentation))
+    (add-hook 'js2-mode-hook #'bw/set-js-indentation)
+    (add-hook 'json-mode-hook #'bw/set-js-indentation))
 
   (setup (:pkg apheleia)
     (apheleia-global-mode +1))
@@ -2843,11 +2843,11 @@ Configure TypeScript and JavaScript language modes
              [remap describe-command] helpful-command
              [remap describe-key] helpful-key))
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "e"   '(:ignore t :which-key "eval")
     "eb"  '(eval-buffer :which-key "eval buffer"))
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     :keymaps '(visual)
     "er" '(eval-region :which-key "eval region"))
 
@@ -2993,7 +2993,7 @@ Set up the =compile= package and ensure that compilation output automatically sc
   (setup compile
     (:option compilation-scroll-output t))
 
-  (defun dw/auto-recompile-buffer ()
+  (defun bw/auto-recompile-buffer ()
     (interactive)
     (if (member #'recompile after-save-hook)
         (remove-hook 'after-save-hook #'recompile t)
@@ -3107,7 +3107,7 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 #+begin_src emacs-lisp
 
   ;; TODO: Figure out how to query for 'done' bugs
-  (defun dw/debbugs-guix-patches ()
+  (defun bw/debbugs-guix-patches ()
     (interactive)
     (debbugs-gnu '("serious" "important" "normal") "guix-patches" nil t))
 
@@ -3145,21 +3145,21 @@ I'm experimenting with generating =Texinfo= from Org Mode files and I need a way
   (setup (:pkg posframe))
   (setup (:pkg command-log-mode :straight t))
 
-  (setq dw/command-window-frame nil)
+  (setq bw/command-window-frame nil)
 
-  (defun dw/toggle-command-window ()
+  (defun bw/toggle-command-window ()
     (interactive)
-    (if dw/command-window-frame
+    (if bw/command-window-frame
         (progn
           (posframe-delete-frame clm/command-log-buffer)
-          (setq dw/command-window-frame nil))
+          (setq bw/command-window-frame nil))
         (progn
           (global-command-log-mode t)
           (with-current-buffer
             (setq clm/command-log-buffer
                   (get-buffer-create " *command-log*"))
             (text-scale-set -1))
-          (setq dw/command-window-frame
+          (setq bw/command-window-frame
             (posframe-show
               clm/command-log-buffer
               :position `(,(- (x-display-pixel-width) 590) . 15)
@@ -3171,8 +3171,8 @@ I'm experimenting with generating =Texinfo= from Org Mode files and I need a way
               :internal-border-color "#c792ea"
               :override-parameters '((parent-frame . nil)))))))
 
-  (dw/leader-key-def
-   "tc" 'dw/toggle-command-window)
+  (bw/leader-key-def
+   "tc" 'bw/toggle-command-window)
 
   (setup (:pkg keycast)
     ;; This works with doom-modeline, inspired by this comment:
@@ -3203,10 +3203,10 @@ I'm experimenting with generating =Texinfo= from Org Mode files and I need a way
 I use the [[https://github.com/Palakis/obs-websocket][obs-websocket]] plugin for OBS Studio to enable automation of scene transitions, etc using Sacha Chua's excellent [[https://github.com/sachac/obs-websocket-el/][obs-websocket-el]] package.  This enables me to control the how flow of video recording and streaming from within Emacs!
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg obs-websocket :guix "emacs-obs-websocket-el")
     (require 'obs-websocket)
-    (defhydra dw/stream-keys (:exit t)
+    (defhydra bw/stream-keys (:exit t)
       "Stream Commands"
       ("c" (obs-websocket-connect) "Connect")
       ("l" (obs-websocket-send "SetCurrentScene" :scene-name "Logo Screen") "Logo Screen" :exit nil)
@@ -3216,10 +3216,10 @@ I use the [[https://github.com/Palakis/obs-websocket][obs-websocket]] plugin for
       ("e" (obs-websocket-send "SetCurrentScene" :scene-name "Thanks For Watching") "Thanks For Watching")
       ("Ss" (obs-websocket-send "StartStreaming") "Start Stream")
       ("Se" (obs-websocket-send "StopStreaming") "End Stream"))
-  
+
     ;; This is Super-s (for now)
-    (global-set-key (kbd "s-s") #'dw/stream-keys/body))
-  
+    (global-set-key (kbd "s-s") #'bw/stream-keys/body))
+
 #+end_src
 
 *Guix Packages*
@@ -3249,7 +3249,7 @@ The *real* stream automation starts here.
 
 #+begin_src emacs-lisp
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "a"  '(:ignore t :which-key "apps"))
 
 #+end_src
@@ -3261,9 +3261,9 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
 #+begin_src emacs-lisp
 
   ;; Only fetch mail on zerocool
-  (setq dw/mail-enabled (member system-name '("zerocool" "acidburn")))
-  (setq dw/mu4e-inbox-query nil)
-  (when dw/mail-enabled
+  (setq bw/mail-enabled (member system-name '("zerocool" "acidburn")))
+  (setq bw/mu4e-inbox-query nil)
+  (when bw/mail-enabled
     (require 'dw-mail))
 
 #+end_src
@@ -3319,7 +3319,7 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
       (insert-file-contents file-path)
       (buffer-string)))
 
-  (defun dw/get-current-package-version ()
+  (defun bw/get-current-package-version ()
     (interactive)
     (let ((package-json-file (concat (eshell/pwd) "/package.json")))
       (when (file-exists-p package-json-file)
@@ -3328,14 +3328,14 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
           (when package-json
             (ignore-errors (gethash "version" package-json)))))))
 
-  (defun dw/map-line-to-status-char (line)
+  (defun bw/map-line-to-status-char (line)
     (cond ((string-match "^?\\? " line) "?")))
 
-  (defun dw/get-git-status-prompt ()
+  (defun bw/get-git-status-prompt ()
     (let ((status-lines (cdr (process-lines "git" "status" "--porcelain" "-b"))))
-      (seq-uniq (seq-filter 'identity (mapcar 'dw/map-line-to-status-char status-lines)))))
+      (seq-uniq (seq-filter 'identity (mapcar 'bw/map-line-to-status-char status-lines)))))
 
-  (defun dw/get-prompt-path ()
+  (defun bw/get-prompt-path ()
     (let* ((current-path (eshell/pwd))
            (git-output (shell-command-to-string "git rev-parse --show-toplevel"))
            (has-path (not (string-match "^fatal" git-output))))
@@ -3345,14 +3345,14 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
 
   ;; This prompt function mostly replicates my custom zsh prompt setup
   ;; that is powered by github.com/denysdovhan/spaceship-prompt.
-  (defun dw/eshell-prompt ()
+  (defun bw/eshell-prompt ()
     (let ((current-branch (magit-get-current-branch))
-          (package-version (dw/get-current-package-version)))
+          (package-version (bw/get-current-package-version)))
       (concat
        "\n"
        (propertize (system-name) 'face `(:foreground "#62aeed"))
        (propertize " ॐ " 'face `(:foreground "white"))
-       (propertize (dw/get-prompt-path) 'face `(:foreground "#82cfd3"))
+       (propertize (bw/get-prompt-path) 'face `(:foreground "#82cfd3"))
        (when current-branch
          (concat
           (propertize " • " 'face `(:foreground "white"))
@@ -3368,13 +3368,13 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
          (propertize "\nλ" 'face `(:foreground "#aece4a")))
        (propertize " " 'face `(:foreground "white")))))
 
-  (unless dw/is-termux
+  (unless bw/is-termux
     (add-hook 'eshell-banner-load-hook
               (lambda ()
                  (setq eshell-banner-message
                        (concat "\n" (propertize " " 'display (create-image "~/.dotfiles/.emacs.d/images/flux_banner.png" 'png nil :scale 0.2 :align-to "center")) "\n\n")))))
 
-  (defun dw/eshell-configure ()
+  (defun bw/eshell-configure ()
     ;; Make sure magit is loaded
     (require 'magit)
 
@@ -3417,7 +3417,7 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
 
     (setenv "PAGER" "cat")
 
-    (setq eshell-prompt-function      'dw/eshell-prompt
+    (setq eshell-prompt-function      'bw/eshell-prompt
           eshell-prompt-regexp        "^λ "
           eshell-history-size         10000
           eshell-buffer-maximum-lines 10000
@@ -3427,7 +3427,7 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
           eshell-prefer-lisp-functions nil))
 
   (setup eshell
-    (add-hook 'eshell-first-time-mode-hook #'dw/eshell-configure)
+    (add-hook 'eshell-first-time-mode-hook #'bw/eshell-configure)
     (setq eshell-directory-name "~/.dotfiles/.emacs.d/eshell/"
           eshell-aliases-file (expand-file-name "~/.dotfiles/.emacs.d/eshell/alias")))
 
@@ -3441,7 +3441,7 @@ My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely requi
     (when (memq window-system '(mac ns x))
       (exec-path-from-shell-initialize)))
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "SPC" 'eshell)
 
 #+end_src
@@ -3494,11 +3494,11 @@ This enhances eshell's completions with those that Fish is capable of and also f
 *** Command Highlighting
 
 #+begin_src emacs-lisp
-  
+
   (setup (:pkg eshell-syntax-highlighting)
     (:load-after eshell
       (eshell-syntax-highlighting-global-mode +1)))
-  
+
 #+end_src
 
 *Guix Packages*
@@ -3513,7 +3513,7 @@ This enhances eshell's completions with those that Fish is capable of and also f
 
 #+begin_src emacs-lisp
 
-  (defun dw/esh-autosuggest-setup ()
+  (defun bw/esh-autosuggest-setup ()
     (require 'company)
     (set-face-foreground 'company-preview-common "#4b5668")
     (set-face-background 'company-preview nil))
@@ -3521,7 +3521,7 @@ This enhances eshell's completions with those that Fish is capable of and also f
   (setup (:pkg esh-autosuggest)
     (require 'esh-autosuggest)
     (setq esh-autosuggest-delay 0.5)
-    (:hook dw/esh-autosuggest-setup)
+    (:hook bw/esh-autosuggest-setup)
     (:hook-into eshell-mode))
 
 #+end_src
@@ -3611,30 +3611,30 @@ This enhances eshell's completions with those that Fish is capable of and also f
 
   ;; Add faces for specific people in the modeline.  There must
   ;; be a better way to do this.
-  (defun dw/around-tracking-add-buffer (original-func buffer &optional faces)
+  (defun bw/around-tracking-add-buffer (original-func buffer &optional faces)
     (let* ((name (buffer-name buffer))
            (face (cond ((s-contains? "Maria" name) '(all-the-icons-pink))
                        ((s-contains? "Alex " name) '(all-the-icons-lgreen))
                        ((s-contains? "Steve" name) '(all-the-icons-lblue))))
            (result (apply original-func buffer (list face))))
-      (dw/update-polybar-telegram)
+      (bw/update-polybar-telegram)
       result))
 
-  (defun dw/after-tracking-remove-buffer (buffer)
-    (dw/update-polybar-telegram))
+  (defun bw/after-tracking-remove-buffer (buffer)
+    (bw/update-polybar-telegram))
 
-  (advice-add 'tracking-add-buffer :around #'dw/around-tracking-add-buffer)
-  (advice-add 'tracking-remove-buffer :after #'dw/after-tracking-remove-buffer)
-  (advice-remove 'tracking-remove-buffer #'dw/around-tracking-remove-buffer)
+  (advice-add 'tracking-add-buffer :around #'bw/around-tracking-add-buffer)
+  (advice-add 'tracking-remove-buffer :after #'bw/after-tracking-remove-buffer)
+  (advice-remove 'tracking-remove-buffer #'bw/around-tracking-remove-buffer)
 
   ;; Advise exwm-workspace-switch so that we can more reliably clear tracking buffers
   ;; NOTE: This is a hack and I hate it.  It'd be great to find a better solution.
-  (defun dw/before-exwm-workspace-switch (frame-or-index &optional force)
+  (defun bw/before-exwm-workspace-switch (frame-or-index &optional force)
     (when (fboundp 'tracking-remove-visible-buffers)
       (when (eq exwm-workspace-current-index 0)
         (tracking-remove-visible-buffers))))
 
-  (advice-add 'exwm-workspace-switch :before #'dw/before-exwm-workspace-switch)
+  (advice-add 'exwm-workspace-switch :before #'bw/before-exwm-workspace-switch)
 
   (setup (:pkg telega)
     (setq telega-user-use-avatars nil
@@ -3662,7 +3662,7 @@ This enhances eshell's completions with those that Fish is capable of and also f
 
 #+begin_src emacs-lisp
 
-  (defun dw/on-erc-track-list-changed ()
+  (defun bw/on-erc-track-list-changed ()
     (dolist (buffer erc-modified-channels-alist)
       (tracking-add-buffer (car buffer))))
 
@@ -3673,10 +3673,10 @@ This enhances eshell's completions with those that Fish is capable of and also f
     (:load-after erc))
 
   (setup erc
-    (add-hook 'erc-track-list-changed-hook #'dw/on-erc-track-list-changed)
+    (add-hook 'erc-track-list-changed-hook #'bw/on-erc-track-list-changed)
     (setq
-        erc-nick "daviwil"
-        erc-user-full-name "David Wilson"
+        erc-nick "wallinb"
+        erc-user-full-name "Bruce Wallin"
         erc-prompt-for-password nil
         erc-auto-query 'bury
         erc-join-buffer 'bury
@@ -3711,7 +3711,7 @@ This enhances eshell's completions with those that Fish is capable of and also f
                                        (erc-default-target)
                                        (password-store-get "IRC/Bitlbee"))))))
 
-  (defun dw/connect-irc ()
+  (defun bw/connect-irc ()
     (interactive)
     (erc-tls :server "crafter.mx" :port 3110 :nick "daviwil"))
     ;; (erc
@@ -3767,10 +3767,10 @@ This enhances eshell's completions with those that Fish is capable of and also f
 
 #+begin_src emacs-lisp
 
-  (dw/ctrl-c-keys
+  (bw/ctrl-c-keys
     "c"  '(:ignore t :which-key "chat")
     "cb" 'erc-switch-to-buffer
-    "cc" 'dw/connect-irc
+    "cc" 'bw/connect-irc
     "ca" 'erc-track-switch-buffer)
 
 #+end_src
@@ -3827,7 +3827,7 @@ I use this nice package from [[https://gitlab.com/willvaughn][nackjicholson]] to
     (emms-default-players)
     (emms-mode-line-disable)
     (setq emms-source-file-default-directory "~/Music/")
-    (dw/leader-key-def
+    (bw/leader-key-def
       "am"  '(:ignore t :which-key "media")
       "amp" '(emms-pause :which-key "play / pause")
       "amf" '(emms-play-file :which-key "play file")))
@@ -3866,7 +3866,7 @@ I use this nice package from [[https://gitlab.com/willvaughn][nackjicholson]] to
 
   (setup (:pkg guix))
 
-  (dw/leader-key-def
+  (bw/leader-key-def
     "G"  '(:ignore t :which-key "Guix")
     "Gg" '(guix :which-key "Guix")
     "Gi" '(guix-installed-user-packages :which-key "user packages")
@@ -3921,15 +3921,15 @@ I use this nice package from [[https://gitlab.com/willvaughn][nackjicholson]] to
 
 #+begin_src emacs-lisp
 
-  (defun dw/bluetooth-connect-q30 ()
+  (defun bw/bluetooth-connect-q30 ()
     (interactive)
     (start-process-shell-command "bluetoothctl" nil "bluetoothctl -- connect 11:14:00:00:1E:1A"))
 
-  (defun dw/bluetooth-connect-qc35 ()
+  (defun bw/bluetooth-connect-qc35 ()
     (interactive)
     (start-process-shell-command "bluetoothctl" nil "bluetoothctl -- connect 04:52:C7:5E:5C:A8"))
 
-  (defun dw/bluetooth-disconnect ()
+  (defun bw/bluetooth-disconnect ()
     (interactive)
     (start-process-shell-command "bluetoothctl" nil "bluetoothctl -- disconnect"))
 
@@ -3992,4 +3992,3 @@ Dial the GC threshold back down so that garbage collection happens more frequent
   ))
 
 #+end_src
-

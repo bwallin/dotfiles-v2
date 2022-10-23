@@ -4,7 +4,7 @@
 ;;       (channel
 ;;         (name 'guix)
 ;;         (branch "fix-glu-pkg-config")
-;;         (url "file:///home/daviwil/Projects/Code/guix")
+;;         (url "file:///home/wallinb/Projects/Code/guix")
 ;;         (introduction
 ;;           (make-channel-introduction
 ;;             "d06d5db885e4b8399e878708862fbe3a67f0592c"

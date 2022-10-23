@@ -90,13 +90,13 @@ EndSection
 
     ;; Choose US English keyboard layout.  The "altgr-intl"
     ;; variant provides dead keys for accented characters.
-    (keyboard-layout (keyboard-layout "us" "altgr-intl" #:model "thinkpad"))
+    (keyboard-layout (keyboard-layout "us" "dvorak" #:model "thinkpad" #:options '("ctrl:nocaps")))
 
     ;; Use the UEFI variant of GRUB with the EFI System
     ;; Partition mounted on /boot/efi.
     (bootloader (bootloader-configuration
                  (bootloader grub-efi-bootloader)
-                 (target "/boot/efi")
+                 (targets '("/boot/efi"))
                  (keyboard-layout keyboard-layout)))
 
 
@@ -111,10 +111,10 @@ EndSection
                    %base-file-systems))
 
     (users (cons (user-account
-                  (name "daviwil")
-                  (comment "David Wilson")
+                  (name "wallinb")
+                  (comment "Bruce Wallin")
                   (group "users")
-                  (home-directory "/home/daviwil")
+                  (home-directory "/home/wallinb")
                   (supplementary-groups '(
                                           "wheel"     ;; sudo
                                           "netdev"    ;; network devices
