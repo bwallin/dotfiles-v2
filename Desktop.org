@@ -64,7 +64,7 @@ Load system-specific settings from =.emacs.d/per-system-settings.el= and unpack 
 
 #+NAME: get-setting
 #+begin_src emacs-lisp :var name="nil" :session system-settings
-(dw/system-settings-get (intern name))
+(bw/system-settings-get (intern name))
 #+end_src
 
 * Fonts and Themes
@@ -113,7 +113,7 @@ I also have to do an extra step to make sure Emacs can find the font path from t
 
 #+NAME: dpi
 #+begin_src emacs-lisp :session=system-settings :var settings=system-settings
-(* 1024 (alist-get 'desktop/dpi dw/system-settings))
+(* 1024 (alist-get 'desktop/dpi bw/system-settings))
 #+end_src
 
 *Guix Packages*
@@ -222,7 +222,7 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
 
 #+begin_src emacs-lisp :tangle .emacs.d/lisp/dw-desktop.el
 
-  (defun dw/exwm-init-hook ()
+  (defun bw/exwm-init-hook ()
     (with-eval-after-load 'perspective
       ;; Set up perspective names on initial workspaces
       (exwm-workspace-switch-create 0)
@@ -259,7 +259,7 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
     ;; Athens
     ;(exwm/run-in-background "redshift -l 37.983810:23.727539 -t 6500:3500"))
 
-  (defun dw/setup-window-by-class ()
+  (defun bw/setup-window-by-class ()
     (interactive)
     (pcase exwm-class-name
       ("Emacs" (call-interactively #'exwm-input-toggle-keyboard))
@@ -271,7 +271,7 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
       ("qutebrowser" (exwm-workspace-move-window 2))
       ("qjackctl" (exwm-floating-toggle-floating))
       ("mpv" (exwm-floating-toggle-floating)
-              (dw/exwm-floating-toggle-pinned))
+              (bw/exwm-floating-toggle-pinned))
       ("gsi" (exwm-input-toggle-keyboard))))
 
   (setup exwm
@@ -280,13 +280,13 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
                 (evil-local-set-key 'motion (kbd "C-u") nil)))
 
     ;; Do some post-init setup
-    (add-hook 'exwm-init-hook #'dw/exwm-init-hook)
+    (add-hook 'exwm-init-hook #'bw/exwm-init-hook)
 
     ;; Manipulate windows as they're created
     (add-hook 'exwm-manage-finish-hook
               (lambda ()
                 ;; Send the window where it belongs
-                (dw/setup-window-by-class)))
+                (bw/setup-window-by-class)))
 
                 ;; Hide the modeline on all X windows
                 ;(exwm-layout-hide-mode-line)))
@@ -302,48 +302,48 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
 
 #+begin_src emacs-lisp :tangle .emacs.d/lisp/dw-desktop.el
 
-(defun dw/run-xmodmap ()
+(defun bw/run-xmodmap ()
   (interactive)
   (start-process-shell-command "xmodmap" nil "xmodmap ~/.dotfiles/.config/i3/Xmodmap"))
 
-(defun dw/update-wallpapers ()
+(defun bw/update-wallpapers ()
   (interactive)
   (start-process-shell-command
    "feh" nil
-   (format "feh --bg-scale ~/.dotfiles/backgrounds/%s" (alist-get 'desktop/background dw/system-settings))))
+   (format "feh --bg-scale ~/.dotfiles/backgrounds/%s" (alist-get 'desktop/background bw/system-settings))))
 
-(setq dw/panel-process nil)
-(defun dw/kill-panel ()
+(setq bw/panel-process nil)
+(defun bw/kill-panel ()
   (interactive)
-  (when dw/panel-process
+  (when bw/panel-process
     (ignore-errors
-      (kill-process dw/panel-process)))
-  (setq dw/panel-process nil))
+      (kill-process bw/panel-process)))
+  (setq bw/panel-process nil))
 
-(defun dw/start-panel ()
+(defun bw/start-panel ()
   (interactive)
-  (dw/kill-panel)
-  (setq dw/panel-process (start-process-shell-command "polybar" nil "polybar panel")))
+  (bw/kill-panel)
+  (setq bw/panel-process (start-process-shell-command "polybar" nil "polybar panel")))
 
-(defun dw/update-screen-layout ()
+(defun bw/update-screen-layout ()
   (interactive)
   (let ((layout-script "~/.bin/update-screens"))
      (message "Running screen layout script: %s" layout-script)
      (start-process-shell-command "xrandr" nil layout-script)))
 
-(defun dw/configure-desktop ()
+(defun bw/configure-desktop ()
   (interactive)
-    (dw/run-xmodmap)
-    (dw/update-screen-layout)
-    (run-at-time "2 sec" nil (lambda () (dw/update-wallpapers))))
+    (bw/run-xmodmap)
+    (bw/update-screen-layout)
+    (run-at-time "2 sec" nil (lambda () (bw/update-wallpapers))))
 
-(defun dw/on-exwm-init ()
-  (dw/configure-desktop)
-  (dw/start-panel))
+(defun bw/on-exwm-init ()
+  (bw/configure-desktop)
+  (bw/start-panel))
 
-(when dw/exwm-enabled
+(when bw/exwm-enabled
   ;; Configure the desktop for first load
-  (add-hook 'exwm-init-hook #'dw/on-exwm-init))
+  (add-hook 'exwm-init-hook #'bw/on-exwm-init))
 
 #+end_src
 
@@ -351,17 +351,17 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
 
 #+begin_src emacs-lisp :tangle .emacs.d/lisp/dw-desktop.el
 
-(defun dw/send-polybar-hook (name number)
+(defun bw/send-polybar-hook (name number)
   (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" name number)))
 
-(defun dw/update-polybar-exwm (&optional path)
-  (dw/send-polybar-hook "exwm" 1)
-  (dw/send-polybar-hook "exwm-path" 1))
+(defun bw/update-polybar-exwm (&optional path)
+  (bw/send-polybar-hook "exwm" 1)
+  (bw/send-polybar-hook "exwm-path" 1))
 
-(defun dw/update-polybar-telegram ()
-  (dw/send-polybar-hook "telegram" 1))
+(defun bw/update-polybar-telegram ()
+  (bw/send-polybar-hook "telegram" 1))
 
-(defun dw/polybar-exwm-workspace ()
+(defun bw/polybar-exwm-workspace ()
   (pcase exwm-workspace-current-index
     (0 "")
     (1 "")
@@ -369,38 +369,38 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
     (3 "")
     (4 "")))
 
-(defun dw/polybar-exwm-workspace-path ()
+(defun bw/polybar-exwm-workspace-path ()
   (let ((workspace-path (frame-parameter nil 'bufler-workspace-path-formatted)))
     (if workspace-path
         (substring-no-properties workspace-path)
       "")))
 
-(defun dw/polybar-mail-count (max-count)
-  (if (and dw/mail-enabled dw/mu4e-inbox-query)
+(defun bw/polybar-mail-count (max-count)
+  (if (and bw/mail-enabled bw/mu4e-inbox-query)
     (let* ((mail-count (shell-command-to-string
-                         (format "mu find --nocolor -n %s \"%s\" | wc -l" max-count dw/mu4e-inbox-query))))
+                         (format "mu find --nocolor -n %s \"%s\" | wc -l" max-count bw/mu4e-inbox-query))))
       (format " %s" (string-trim mail-count)))
     ""))
 
-(defun dw/telega-normalize-name (chat-name)
+(defun bw/telega-normalize-name (chat-name)
   (let* ((trimmed-name (string-trim-left (string-trim-right chat-name "}") "◀{"))
          (first-name (nth 0 (split-string trimmed-name " "))))
     first-name))
 
-(defun dw/propertized-to-polybar (buffer-name)
+(defun bw/propertized-to-polybar (buffer-name)
   (if-let* ((text (substring-no-properties buffer-name))
             (fg-face (get-text-property 0 'face buffer-name))
             (fg-color (face-attribute fg-face :foreground)))
-    (format "%%{F%s}%s%%{F-}" fg-color (dw/telega-normalize-name text))
+    (format "%%{F%s}%s%%{F-}" fg-color (bw/telega-normalize-name text))
     text))
 
-(defun dw/polybar-telegram-chats ()
+(defun bw/polybar-telegram-chats ()
   (if (> (length tracking-buffers) 0)
-    (format " %s" (string-join (mapcar 'dw/propertized-to-polybar tracking-buffers) ", "))
+    (format " %s" (string-join (mapcar 'bw/propertized-to-polybar tracking-buffers) ", "))
     ""))
 
-(add-hook 'exwm-workspace-switch-hook #'dw/update-polybar-exwm)
-(add-hook 'bufler-workspace-set-hook #'dw/update-polybar-exwm)
+(add-hook 'exwm-workspace-switch-hook #'bw/update-polybar-exwm)
+(add-hook 'bufler-workspace-set-hook #'bw/update-polybar-exwm)
 
 #+end_src
 
@@ -408,7 +408,7 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
 
 #+begin_src emacs-lisp :tangle .emacs.d/lisp/dw-desktop.el
 
-  (when dw/exwm-enabled
+  (when bw/exwm-enabled
     ;; These keys should always pass through to Emacs
     (setq exwm-input-prefix-keys
       '(?\C-x
@@ -571,7 +571,7 @@ cursor-scroll = ns-resize
 
 [module/exwm]
 type = custom/ipc
-hook-0 = emacsclient -e "(dw/polybar-exwm-workspace)" | sed -e 's/^"//' -e 's/"$//'
+hook-0 = emacsclient -e "(bw/polybar-exwm-workspace)" | sed -e 's/^"//' -e 's/"$//'
 initial = 1
 format-underline = ${colors.underline-1}
 format-background = ${colors.background-alt}
@@ -579,7 +579,7 @@ format-padding = 1
 
 [module/exwm-path]
 type = custom/ipc
-hook-0 = emacsclient -e "(dw/polybar-exwm-workspace-path)" | sed -e 's/^"//' -e 's/"$//'
+hook-0 = emacsclient -e "(bw/polybar-exwm-workspace-path)" | sed -e 's/^"//' -e 's/"$//'
 format-foreground = #f78c6c
 initial = 1
 
@@ -590,14 +590,14 @@ interval = 3
 
 [module/mu4e]
 type = custom/ipc
-hook-0 = emacsclient -e '(dw/polybar-mail-count 500)' | sed -e 's/^"//' -e 's/"$//'
+hook-0 = emacsclient -e '(bw/polybar-mail-count 500)' | sed -e 's/^"//' -e 's/"$//'
 initial = 1
 format-underline = ${colors.underline-1}
-click-left = emacsclient -e '(dw/go-to-inbox)'
+click-left = emacsclient -e '(bw/go-to-inbox)'
 
 [module/telegram]
 type = custom/ipc
-hook-0 = emacsclient -e '(dw/polybar-telegram-chats)' | sed -e 's/^"//' -e 's/"$//'
+hook-0 = emacsclient -e '(bw/polybar-telegram-chats)' | sed -e 's/^"//' -e 's/"$//'
 format-padding = 3
 initial = 1
 
