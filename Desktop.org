@@ -1079,7 +1079,6 @@ I use [[https://www.gnu.org/software/mcron/][GNU mcron]] for scheduling tasks to
 #+end_src
 
 * Applications
-
 ** Browsers
 
 *Guix Packages*
