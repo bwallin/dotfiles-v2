@@ -855,6 +855,14 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
 
 #+end_src
 
+*Guix Packages*
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+
+  "emacs-diminish"
+
+#+end_src
+
 *** Doom Modeline
 
 #+begin_src emacs-lisp
@@ -871,7 +879,6 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
              doom-modeline-bar-width 6
              doom-modeline-lsp t
              doom-modeline-github nil
-             doom-modeline-mu4e nil
              doom-modeline-irc t
              doom-modeline-minor-modes t
              doom-modeline-persp-name nil
@@ -3109,30 +3116,6 @@ I'm experimenting with generating =Texinfo= from Org Mode files and I need a way
 
   (bw/leader-key-def
     "a"  '(:ignore t :which-key "apps"))
-
-#+end_src
-
-** Mail
-
-My mail configuration is stored in [[file:Mail.org][Mail.org]].  We merely require it here to have it loaded in the main Emacs configuration.
-
-#+begin_src emacs-lisp
-
-  ;; Only fetch mail on zerocool
-  (setq bw/mail-enabled (member system-name '("zerocool" "acidburn")))
-  (setq bw/mu4e-inbox-query nil)
-  (when bw/mail-enabled
-    (require 'bw-mail))
-
-#+end_src
-
-*Guix Packages*
-
-=emacs-mu4e-alert= pulls in =mu= so we don't need to specify it here also.
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-mu4e-alert"
 
 #+end_src
 

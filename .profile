@@ -21,7 +21,7 @@ unset PULSE_CONFIG
 unset PULSE_CLIENTCONFIG
 
 # Export the path to IcedTea so that tools pick it up correctly
-export JAVA_HOME=$(dirname $(dirname $(readlink $(which java))))
+# export JAVA_HOME=$(dirname $(dirname $(readlink $(which java))))
 
 # Make sure we can reach the GPG agent for SSH auth
 export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
