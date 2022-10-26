@@ -353,6 +353,8 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
       (qutebrowser/default-zoom . 200))
     <<system-settings>>))
 
+(defun bw/system-settings-get (setting-key)
+  (alist-get setting-key bw/system-settings))
 #+end_src
 
 *** crustynubbin

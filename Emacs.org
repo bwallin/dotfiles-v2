@@ -762,20 +762,20 @@ Different platforms need different default font sizes, and [[https://mozilla.git
      (set-face-attribute 'default nil
                          :font "JetBrains Mono"
                          :weight 'light
-                         :height (bw/system-settings-get 'emacs/default-face-size)))
+                         :height (alist-get 'emacs/default-face-size bw/system-settings)))
     ('darwin (set-face-attribute 'default nil :font "Fira Mono" :height 170)))
 
   ;; Set the fixed pitch face
   (set-face-attribute 'fixed-pitch nil
                       :font "JetBrains Mono"
                       :weight 'light
-                      :height (bw/system-settings-get 'emacs/fixed-face-size))
+                      :height (alist-get 'emacs/fixed-face-size bw/system-settings))
 
   ;; Set the variable pitch face
   (set-face-attribute 'variable-pitch nil
                       ;; :font "Cantarell"
                       :font "Iosevka Aile"
-                      :height (bw/system-settings-get 'emacs/variable-face-size)
+                      :height (alist-get 'emacs/variable-face-size bw/system-settings)
                       :weight 'light)
 
 #+end_src
@@ -1712,7 +1712,6 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
 #+begin_src emacs-lisp
 
   (setup (:pkg all-the-icons-dired))
-  (setup (:pkg dired-single))
   (setup (:pkg dired-ranger))
   (setup (:pkg dired-collapse))
 
@@ -1741,9 +1740,7 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
                 (hl-line-mode 1)))
 
     (evil-collection-define-key 'normal 'dired-mode-map
-      "h" 'dired-single-up-directory
       "H" 'dired-omit-mode
-      "l" 'dired-single-buffer
       "y" 'dired-ranger-copy
       "X" 'dired-ranger-move
       "p" 'dired-ranger-paste))
@@ -1792,7 +1789,6 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
 
 #+begin_src scheme :noweb-ref packages :noweb-sep ""
 
-  "emacs-dired-single"
   "emacs-dired-hacks"
   "emacs-all-the-icons-dired"
 
@@ -2889,22 +2885,6 @@ Configure TypeScript and JavaScript language modes
 
 #+end_src
 
-*** Zig
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg zig-mode :straight t)
-    (:disabled)
-    (add-to-list 'lsp-language-id-configuration '(zig-mode . "zig"))
-    (:load-after lsp-mode
-      (lsp-register-client
-        (make-lsp-client
-          :new-connection (lsp-stdio-connection "~/Projects/Code/zls/zig-cache/bin/zls")
-          :major-modes '(zig-mode)
-          :server-id 'zls))))
-
-#+end_src
-
 *** Markdown
 
 #+begin_src emacs-lisp
@@ -3112,19 +3092,6 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+end_src
 
-* Game Development
-** Substratic Forge
-
-#+begin_src emacs-lisp
-
-  ;; (setup substratic-forge
-  ;;   :if (file-exists-p "~/Projects/Code/crash-the-stack/lib/github.com/substratic/forge/@/")
-  ;;   :load-path "~/Projects/Code/crash-the-stack/lib/github.com/substratic/forge/@/"
-  ;;   :bind (:map substratic-forge-mode-map
-  ;;          ("C-c C-m" . substratic-reload-module)))
-
-#+end_src
-
 * Writing
 
 ** Previewing Info files
@@ -3134,111 +3101,6 @@ I'm experimenting with generating =Texinfo= from Org Mode files and I need a way
 #+begin_src emacs-lisp
 
   (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-on-current-buffer))
-
-#+end_src
-
-* Streaming
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg posframe))
-  (setup (:pkg command-log-mode :straight t))
-
-  (setq bw/command-window-frame nil)
-
-  (defun bw/toggle-command-window ()
-    (interactive)
-    (if bw/command-window-frame
-        (progn
-          (posframe-delete-frame clm/command-log-buffer)
-          (setq bw/command-window-frame nil))
-        (progn
-          (global-command-log-mode t)
-          (with-current-buffer
-            (setq clm/command-log-buffer
-                  (get-buffer-create " *command-log*"))
-            (text-scale-set -1))
-          (setq bw/command-window-frame
-            (posframe-show
-              clm/command-log-buffer
-              :position `(,(- (x-display-pixel-width) 590) . 15)
-              :width 38
-              :height 5
-              :min-width 38
-              :min-height 5
-              :internal-border-width 2
-              :internal-border-color "#c792ea"
-              :override-parameters '((parent-frame . nil)))))))
-
-  (bw/leader-key-def
-   "tc" 'bw/toggle-command-window)
-
-  (setup (:pkg keycast)
-    ;; This works with doom-modeline, inspired by this comment:
-    ;; https://github.com/tarsius/keycast/issues/7#issuecomment-627604064
-    (define-minor-mode keycast-mode
-      "Show current command and its key binding in the mode line."
-      :global t
-      (require 'keycast)
-      (if keycast-mode
-          (add-hook 'pre-command-hook 'keycast-mode-line-update)
-          (remove-hook 'pre-command-hook 'keycast-mode-line-update)))
-
-    (add-to-list 'global-mode-string '("" mode-line-keycast " ")))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-posframe"
-  "emacs-keycast"
-
-#+end_src
-
-** obs-websocket
-
-I use the [[https://github.com/Palakis/obs-websocket][obs-websocket]] plugin for OBS Studio to enable automation of scene transitions, etc using Sacha Chua's excellent [[https://github.com/sachac/obs-websocket-el/][obs-websocket-el]] package.  This enables me to control the how flow of video recording and streaming from within Emacs!
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg obs-websocket :guix "emacs-obs-websocket-el")
-    (require 'obs-websocket)
-    (defhydra bw/stream-keys (:exit t)
-      "Stream Commands"
-      ("c" (obs-websocket-connect) "Connect")
-      ("l" (obs-websocket-send "SetCurrentScene" :scene-name "Logo Screen") "Logo Screen" :exit nil)
-      ("s" (obs-websocket-send "SetCurrentScene" :scene-name "Screen") "Screen")
-      ("w" (obs-websocket-send "SetCurrentScene" :scene-name "Webcam") "Webcam")
-      ("p" (obs-websocket-send "SetCurrentScene" :scene-name "Sponsors") "Sponsors")
-      ("e" (obs-websocket-send "SetCurrentScene" :scene-name "Thanks For Watching") "Thanks For Watching")
-      ("Ss" (obs-websocket-send "StartStreaming") "Start Stream")
-      ("Se" (obs-websocket-send "StopStreaming") "End Stream"))
-
-    ;; This is Super-s (for now)
-    (global-set-key (kbd "s-s") #'bw/stream-keys/body))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-obs-websocket-el"
-
-#+end_src
-
-** live-crafter.el
-
-The *real* stream automation starts here.
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg live-crafter
-               :host github
-               :repo "SystemCrafters/live-crafter")
-    (:load-after mpv))
 
 #+end_src
 
@@ -3956,7 +3818,6 @@ Dial the GC threshold back down so that garbage collection happens more frequent
 
   (specifications->manifest
    '(;;"emacs"
-     "emacs-native-comp"
      <<packages>>
   ))
 
