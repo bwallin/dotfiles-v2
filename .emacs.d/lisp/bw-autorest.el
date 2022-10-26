@@ -1,13 +1,13 @@
-(defvar dw/autorest-last-run nil
-  "Details on the last AutoRest run to use with dw/rerun-autorest-command")
+(defvar bw/autorest-last-run nil
+  "Details on the last AutoRest run to use with bw/rerun-autorest-command")
 
-(defun dw/rerun-autorest-command ()
+(defun bw/rerun-autorest-command ()
   (interactive)
-  (if dw/autorest-last-run
-      (apply #'dw/run-autorest-command dw/autorest-last-run)
+  (if bw/autorest-last-run
+      (apply #'bw/run-autorest-command bw/autorest-last-run)
       (message "No previous AutoRest run!")))
 
-(defun dw/run-autorest-command (command-string run-name pre-command)
+(defun bw/run-autorest-command (command-string run-name pre-command)
   (let ((run-message (format "Running AutoRest - %s" command-string)))
     (setq autorest-buffer (get-buffer-create (format "*AutoRest Output: %s*" run-name)))
     (with-current-buffer autorest-buffer
@@ -27,7 +27,7 @@
     (message run-message)
     (display-buffer-pop-up-window autorest-buffer '((window-height . 13)))
 
-    (setq dw/autorest-last-run (list command-string run-name pre-command))
+    (setq bw/autorest-last-run (list command-string run-name pre-command))
 
     (let ((default-directory "~/Projects/Code/autorest/")
           (full-command
@@ -40,7 +40,7 @@
 
     (set-process-filter autorest-process 'comint-output-filter)))
 
-(cl-defun dw/run-autorest (&key (run-name "adhoc")
+(cl-defun bw/run-autorest (&key (run-name "adhoc")
                                 input-file
                                 (use '())
                                 language
@@ -65,13 +65,13 @@
                      (when debug "--debug")))
          (command-string (string-join args " ")))
     (message command-string)
-    (dw/run-autorest-command command-string run-name pre-command)))
+    (bw/run-autorest-command command-string run-name pre-command)))
 
 ;; Keybindings to set up:
 ;; q - Close panel
 ;; C-c o - List output files
 
-;; (dw/run-autorest
+;; (bw/run-autorest
 ;;  :run-name "body-formdata"
 ;;  :language 'python
 ;;  :input-file "~/Projects/Code/autorest.megarepo/testserver/swagger/body-formdata.json"
@@ -79,4 +79,4 @@
 ;;  :version "./autorest/core"
 ;;  :pre-command "pushd ./modelerfour/modelerfour && npm run build && popd")
 
-(provide 'dw-autorest)
+(provide 'bw-autorest)

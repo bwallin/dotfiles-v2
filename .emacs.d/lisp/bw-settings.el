@@ -1,9 +1,9 @@
 
-(defun dw/load-system-settings ()
+(defun bw/load-system-settings ()
   (interactive)
   (load-file "~/.dotfiles/.emacs.d/per-system-settings.el"))
 
-(defun dw/system-settings-get (setting)
+(defun bw/system-settings-get (setting)
   (alist-get setting dw/system-settings))
 
-(provide 'dw-settings)
+(provide 'bw-settings)
