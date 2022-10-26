@@ -158,10 +158,6 @@
    
    "emacs-mu4e-alert"
    
-   "ledger"
-   ;; "hledger"
-   "emacs-ledger-mode"
-   
    "emacs-eshell-z"
    "emacs-esh-autosuggest"
    "emacs-xterm-color"

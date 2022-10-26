@@ -16,7 +16,7 @@
 ;; Set the right directory to store the native comp cache
 (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
 
-(load-file "~/.dotfiles/.emacs.d/lisp/dw-settings.el")
+(load-file "~/.dotfiles/.emacs.d/lisp/bw-settings.el")
 
 ;; Load settings for the first time
 (bw/load-system-settings)
@@ -141,7 +141,7 @@ installed via Guix.")
                            (seq-contains command-line-args "--use-exwm")))
 
 (when bw/exwm-enabled
-  (require 'dw-desktop))
+  (require 'bw-desktop))
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -822,7 +822,7 @@ folder, otherwise delete a word"
   (straight-use-package '(org :type built-in)))
 
 (setup (:pkg org)
-  (:also-load org-tempo dw-org dw-workflow)
+  (:also-load org-tempo bw-org bw-workflow)
   (:hook bw/org-mode-setup)
   (setq org-ellipsis " ▾"
         org-hide-emphasis-markers t
@@ -857,8 +857,7 @@ folder, otherwise delete a word"
 
   (org-babel-do-load-languages
     'org-babel-load-languages
-    '((emacs-lisp . t)
-      (ledger . t)))
+    '((emacs-lisp . t)))
 
   (push '("conf-unix" . conf-unix) org-src-lang-modes))
 
@@ -1567,21 +1566,7 @@ _d_: date        ^ ^              ^ ^
 (setq bw/mail-enabled (member system-name '("zerocool" "acidburn")))
 (setq bw/mu4e-inbox-query nil)
 (when bw/mail-enabled
-  (require 'dw-mail))
-
-(setup (:pkg ledger-mode)
-  (:file-match "\\.lgr\\'")
-  (:bind "TAB" completion-at-point)
-  (:option
-   ledger-reports '(("bal" "%(binary) -f %(ledger-file) bal")
-                    ("bal this quarter" "%(binary) -f %(ledger-file) --period \"this quarter\" bal")
-                    ("bal last quarter" "%(binary) -f %(ledger-file) --period \"last quarter\" bal")
-                    ("reg" "%(binary) -f %(ledger-file) reg")
-                    ("payee" "%(binary) -f %(ledger-file) reg @%(payee)")
-                    ("account" "%(binary) -f %(ledger-file) reg %(account)"))))
-
-(setup (:pkg hledger-mode :straight t)
-  (:bind "TAB" completion-at-point))
+  (require 'bw-mail))
 
 (defun read-file (file-path)
   (with-temp-buffer
