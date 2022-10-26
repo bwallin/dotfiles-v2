@@ -21,7 +21,6 @@
 - [[#dotfiles-management][Dotfiles Management]]
   - [[#syncing][Syncing]]
   - [[#updating][Updating]]
-- [[#nix-package-manager][Nix Package Manager]]
 - [[#system-installation][System Installation]]
   - [[#building-the-installation-image][Building the Installation Image]]
   - [[#installing-guix][Installing Guix]]
@@ -142,7 +141,6 @@ sudo -E guix system -L ~/.dotfiles/.config/guix/systems reconfigure ~/.dotfiles/
   #:use-module (nongnu packages linux)
   #:use-module (nongnu system linux-initrd))
 
-(use-service-modules nix)
 (use-service-modules desktop xorg)
 (use-package-modules certs)
 (use-package-modules shells)
@@ -314,7 +312,6 @@ Define the =base-operating-system= which will be inherited by all machine config
                              (libvirt-configuration
                               (unix-sock-group "libvirt")
                               (tls-port "16555")))
-                    (service nix-service-type)
                     (bluetooth-service #:auto-enable? #t)
                     (remove (lambda (service)
                                 (eq? (service-kind service) gdm-service-type))
@@ -381,7 +378,7 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
 
      (mapped-devices
       (list (mapped-device
-             (source (uuid "9a25f557-8061-4cc2-91d2-af559f69c814"))
+             (source (uuid "5a8c0c84-18bf-46c1-9f54-569ab0362f75"))
              (target "cryptroot")
              (type luks-device-mapping))))
 
@@ -695,33 +692,6 @@ Updating my dotfiles requires running a script in Emacs to loop over all of my l
     (dolist (org-file org-files)
       (unless (member org-file '("README.org" "Systems.org"))
       	(bw/tangle-org-file org-file))))
-
-#+end_src
-
-* Nix Package Manager
-
-In an ironic twist of fate, I've found that certain tools I need to use are more easily available in the Nix package repository, so I use it to install them.
-
-#+begin_src conf :tangle .nix-channels
-
-https://nixos.org/channels/nixpkgs-unstable nixpkgs
-
-#+end_src
-
-The channel needs to be updated before any packages can be installed:
-
-#+begin_src sh
-
-nix-channel --update
-
-#+end_src
-
-Installing packages:
-
-#+begin_src sh
-
-nix-env -i nodejs
-# nix-env -iA nixpkgs.nodejs-12_x # For a specific version
 
 #+end_src
 

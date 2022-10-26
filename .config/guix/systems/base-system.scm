@@ -27,7 +27,6 @@
   #:use-module (nongnu packages linux)
   #:use-module (nongnu system linux-initrd))
 
-(use-service-modules nix)
 (use-service-modules desktop xorg)
 (use-package-modules certs)
 (use-package-modules shells)
@@ -175,7 +174,6 @@ EndSection
                              (libvirt-configuration
                               (unix-sock-group "libvirt")
                               (tls-port "16555")))
-                    (service nix-service-type)
                     (bluetooth-service #:auto-enable? #t)
                     (remove (lambda (service)
                                 (eq? (service-kind service) gdm-service-type))

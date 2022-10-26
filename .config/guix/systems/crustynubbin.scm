@@ -9,27 +9,23 @@
  (inherit base-operating-system)
  (host-name "crustynubbin")
 
-  (bootloader (bootloader-configuration
-               (bootloader grub-bootloader)
-               (targets (list "/dev/sda"))
-               (keyboard-layout keyboard-layout)))
-
  (firmware (list linux-firmware sof-firmware))
 
  (mapped-devices
   (list (mapped-device
-         (source (uuid "FILL ME"))
-         (target "system-root")
+         (source (uuid "5a8c0c84-18bf-46c1-9f54-569ab0362f75"))
+         (target "cryptroot")
          (type luks-device-mapping))))
 
  (file-systems (cons*
                 (file-system
-                 (device (file-system-label "system-root"))
+                 (device "/dev/mapper/cryptroot")
                  (mount-point "/")
                  (type "ext4")
                  (dependencies mapped-devices))
                 (file-system
-                 (device "/dev/sda1")
+                 (device (uuid "6F43-BCA3"
+                               'fat32))
                  (mount-point "/boot/efi")
                  (type "vfat"))
                 %base-file-systems)))
