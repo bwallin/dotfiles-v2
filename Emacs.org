@@ -1317,7 +1317,7 @@ Trying this as an alternative to Ivy and Counsel.
              "TAB" corfu-insert
              "C-f" corfu-insert))
     (:option corfu-cycle t)
-    (corfu-global-mode))
+    (global-corfu-mode))
 
 #+end_src
 
@@ -1377,7 +1377,7 @@ Consult provides a lot of useful completion commands similar to Ivy's Counsel.
 
 #+begin_src emacs-lisp
 
-  (setup (:pkg consult-dir :straight t)
+  (setup (:pkg consult-dir)
     (:global "C-x C-d" consult-dir)
     (:with-map vertico-map
       (:bind "C-x C-d" consult-dir
@@ -1400,6 +1400,14 @@ Consult provides a lot of useful completion commands similar to Ivy's Counsel.
           (eshell/cd (substring-no-properties (consult-dir--pick "Switch directory: ")))))
        (t (eshell/cd (if regexp (eshell-find-previous-directory regexp)
                        (completing-read "cd: " eshell-dirs)))))))
+
+#+end_src
+
+*Guix Packages*
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+
+  "emacs-consult-dir"
 
 #+end_src
 
@@ -1676,36 +1684,6 @@ Emacs' default buffer placement algorithm is pretty disruptive if you like setti
                                         compilation-mode))
     (require 'popper) ;; Needed because I disabled autoloads
     (popper-mode 1))
-
-#+end_src
-
-* Credential Management
-
-I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords locally.  I also use [[https://github.com/DamienCassou/auth-password-store][auth-source-pass]] as the primary =auth-source= provider so that all passwords are stored in a single place.
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg password-store)
-    (setq password-store-password-length 12)
-    (bw/leader-key-def
-      "ap" '(:ignore t :which-key "pass")
-      "app" 'password-store-copy
-      "api" 'password-store-insert
-      "apg" 'password-store-generate))
-
-  (setup (:pkg auth-source-pass)
-    (auth-source-pass-enable))
-
-  (setup (:pkg oauth2 :straight t))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-password-store"
-  "emacs-auth-source-pass"
 
 #+end_src
 
@@ -3390,282 +3368,6 @@ This enhances eshell's completions with those that Fish is capable of and also f
   (setq ediff-diff-options "-w"
         ediff-split-window-function 'split-window-horizontally
         ediff-window-setup-function 'ediff-setup-windows-plain)
-
-#+end_src
-
-** Chat
-
-*** Tracking
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg tracking)
-    (require 'tracking)
-    (setq tracking-faces-priorities '(all-the-icons-pink
-                                      all-the-icons-lgreen
-                                      all-the-icons-lblue))
-    (setq tracking-frame-behavior nil))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-tracking"
-
-#+end_src
-
-*** Telegram
-
-#+begin_src emacs-lisp
-
-  ;; Add faces for specific people in the modeline.  There must
-  ;; be a better way to do this.
-  (defun bw/around-tracking-add-buffer (original-func buffer &optional faces)
-    (let* ((name (buffer-name buffer))
-           (face (cond ((s-contains? "Maria" name) '(all-the-icons-pink))
-                       ((s-contains? "Alex " name) '(all-the-icons-lgreen))
-                       ((s-contains? "Steve" name) '(all-the-icons-lblue))))
-           (result (apply original-func buffer (list face))))
-      (bw/update-polybar-telegram)
-      result))
-
-  (defun bw/after-tracking-remove-buffer (buffer)
-    (bw/update-polybar-telegram))
-
-  (advice-add 'tracking-add-buffer :around #'bw/around-tracking-add-buffer)
-  (advice-add 'tracking-remove-buffer :after #'bw/after-tracking-remove-buffer)
-  (advice-remove 'tracking-remove-buffer #'bw/around-tracking-remove-buffer)
-
-  ;; Advise exwm-workspace-switch so that we can more reliably clear tracking buffers
-  ;; NOTE: This is a hack and I hate it.  It'd be great to find a better solution.
-  (defun bw/before-exwm-workspace-switch (frame-or-index &optional force)
-    (when (fboundp 'tracking-remove-visible-buffers)
-      (when (eq exwm-workspace-current-index 0)
-        (tracking-remove-visible-buffers))))
-
-  (advice-add 'exwm-workspace-switch :before #'bw/before-exwm-workspace-switch)
-
-  (setup (:pkg telega)
-    (setq telega-user-use-avatars nil
-          telega-use-tracking-for '(any pin unread)
-          telega-emoji-use-images t
-          telega-completing-read-function #'ivy-completing-read
-          telega-msg-rainbow-title nil
-          telega-chat-fill-column 75))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-telega"
-
-#+end_src
-
-*** ERC
-
-[[https://www.gnu.org/software/emacs/manual/html_node/erc/Modules.html][ERC]] is the most featureful of the Emacs IRC clients.  At first I thought it was too bulky, but after using =circe= and =rcirc= I started to appreciate some of the features it provides.  The "static center" fill mode is really awesome.
-
-**** Configuration
-
-#+begin_src emacs-lisp
-
-  (defun bw/on-erc-track-list-changed ()
-    (dolist (buffer erc-modified-channels-alist)
-      (tracking-add-buffer (car buffer))))
-
-  (setup (:pkg erc-hl-nicks)
-    (:load-after erc))
-
-  (setup (:pkg erc-image)
-    (:load-after erc))
-
-  (setup erc
-    (add-hook 'erc-track-list-changed-hook #'bw/on-erc-track-list-changed)
-    (setq
-        erc-nick "wallinb"
-        erc-user-full-name "Bruce Wallin"
-        erc-prompt-for-password nil
-        erc-auto-query 'bury
-        erc-join-buffer 'bury
-        erc-track-shorten-start 8
-        erc-interpret-mirc-color t
-        erc-rename-buffers t
-        erc-kill-buffer-on-part t
-        erc-track-exclude '("#twitter_daviwil")
-        erc-track-exclude-types '("JOIN" "NICK" "PART" "QUIT" "MODE" "AWAY")
-        erc-track-enable-keybindings nil
-        erc-track-visibility nil ; Only use the selected frame for visibility
-        erc-track-exclude-server-buffer t
-        erc-fill-column 120
-        erc-fill-function 'erc-fill-static
-        erc-fill-static-center 20
-        erc-image-inline-rescale 400
-        erc-server-reconnect-timeout 10
-        erc-server-reconnect-attempts 5
-        erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs" "#guix"))
-        erc-quit-reason (lambda (s) (or s "Ejecting from cyberspace"))
-        erc-modules
-        '(autoaway autojoin button completion fill irccontrols keep-place
-            list match menu move-to-prompt netsplit networks noncommands
-            readonly ring stamp track image hl-nicks notify notifications))
-
-    (add-hook 'erc-join-hook 'bitlbee-identify)
-    (defun bitlbee-identify ()
-      "If we're on the bitlbee server, send the identify command to the &bitlbee channel."
-      (when (and (string= "127.0.0.1" erc-session-server)
-                 (string= "&bitlbee" (buffer-name)))
-        (erc-message "PRIVMSG" (format "%s identify %s"
-                                       (erc-default-target)
-                                       (password-store-get "IRC/Bitlbee"))))))
-
-  (defun bw/connect-irc ()
-    (interactive)
-    (erc-tls :server "crafter.mx" :port 3110 :nick "daviwil"))
-    ;; (erc
-    ;;    :server "127.0.0.1" :port 6667
-    ;;    :nick "daviwil" :password (password-store-get "IRC/Bitlbee")))
-
-  ;; Thanks karthik!
-  (defun erc-image-create-image (file-name)
-    "Create an image suitably scaled according to the setting of
-  'ERC-IMAGE-RESCALE."
-    (let* ((positions (window-inside-absolute-pixel-edges))
-          (width (- (nth 2 positions) (nth 0 positions)))
-          (height (- (nth 3 positions) (nth 1 positions)))
-          (image (create-image file-name))
-          (dimensions (image-size image t))
-          (imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
-                                          ; See if we want to rescale the image
-      (if (and erc-image-inline-rescale
-              (not (image-multi-frame-p image)))
-          ;; Rescale based on erc-image-rescale
-          (cond (;; Numeric: scale down to that size
-                (numberp erc-image-inline-rescale)
-                (if (> (cdr dimensions) erc-image-inline-rescale)
-                    (create-image file-name imagemagick-p nil :height erc-image-inline-rescale)
-                  image))
-                (;; 'window: scale down to window size, if bigger
-                (eq erc-image-inline-rescale 'window)
-                ;; But only if the image is greater than the window size
-                (if (or (> (car dimensions) width)
-                        (> (cdr dimensions) height))
-                    ;; Figure out in which direction we need to scale
-                    (if (> width height)
-                        (create-image file-name imagemagick-p nil :height  height)
-                      (create-image file-name imagemagick-p nil :width width))
-                  ;; Image is smaller than window, just give that back
-                  image))
-                (t (progn (message "Error: none of the rescaling options matched") image)))
-        ;; No rescale
-        image)))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-erc-image"
-  "emacs-erc-hl-nicks"
-
-#+end_src
-
-**** Bindings
-
-#+begin_src emacs-lisp
-
-  (bw/ctrl-c-keys
-    "c"  '(:ignore t :which-key "chat")
-    "cb" 'erc-switch-to-buffer
-    "cc" 'bw/connect-irc
-    "ca" 'erc-track-switch-buffer)
-
-#+end_src
-
-**** Sharing Files with 0x0
-
-I use this nice package from [[https://gitlab.com/willvaughn][nackjicholson]] to make sharing files and images on IRC much easier.
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg 0x0 :host gitlab :repo "willvaughn/emacs-0x0"))
-
-#+end_src
-
-** RSS with Elfeed
-
-[[https://github.com/skeeto/elfeed][Elfeed]] looks like a great RSS feed reader.  Not using it much yet, but definitely looking forward to using it to keep track of a few different blogs I follow using Twitter.  Also seems to be great for following subreddits like /r/Emacs.
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg elfeed)
-    (setq elfeed-feeds
-      '("https://nullprogram.com/feed/"
-        "https://ambrevar.xyz/atom.xml"
-        "https://guix.gnu.org/feeds/blog.atom"
-        "https://valdyas.org/fading/feed/"
-        "https://www.reddit.com/r/emacs/.rss")))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-elfeed"
-
-#+end_src
-
-** Media
-*** mpv
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg mpv :straight t))
-
-#+end_src
-*** EMMS
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg emms)
-    (require 'emms-setup)
-    (emms-standard)
-    (emms-default-players)
-    (emms-mode-line-disable)
-    (setq emms-source-file-default-directory "~/Music/")
-    (bw/leader-key-def
-      "am"  '(:ignore t :which-key "media")
-      "amp" '(emms-pause :which-key "play / pause")
-      "amf" '(emms-play-file :which-key "play file")))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-emms"
-
-#+end_src
-
-** Gemini
-
-#+begin_src emacs-lisp
-
-  (setup (:pkg elpher))
-
-#+end_src
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-  "emacs-elpher"
 
 #+end_src
 
