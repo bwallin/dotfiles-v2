@@ -12,7 +12,7 @@
   - [[#base-configuration][Base Configuration]]
   - [[#machines][Machines]]
     - [[#per-system-settings][Per-System Settings]]
-    - [[crustynubbin][crustynubbin]]
+    - [[#crustynubbin][crustynubbin]]
   - [[#usb-installation-image][USB Installation Image]]
 - [[#profile-management][Profile Management]]
   - [[#activating-profiles][Activating Profiles]]
@@ -404,10 +404,10 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
 #+begin_src emacs-lisp :noweb-ref system-settings :noweb-sep ""
 
   (when (equal system-name "crustynubbin")
-    '((desktop/dpi . 180)
-      (emacs/default-face-size . 120)
-      (emacs/variable-face-size . 130)
-      (emacs/fixed-face-size . 120)
+    '((desktop/dpi . 125)
+      (emacs/default-face-size . 110)
+      (emacs/variable-face-size . 120)
+      (emacs/fixed-face-size . 110)
       (polybar/height . 20)
       (polybar/font-0-size . 12)
       (polybar/font-1-size . 8)
@@ -415,8 +415,8 @@ I also define a function called =bw/system-settings-get= which can retrieve thes
       (polybar/font-3-size . 7)
       (dunst/font-size . 15)
       (dunst/max-icon-size . 88)
-      (vimb/default-zoom . 160)
-      (qutebrowser/default-zoom . 180)))
+      (vimb/default-zoom . 100)
+      (qutebrowser/default-zoom . 100)))
 
 
 #+end_src

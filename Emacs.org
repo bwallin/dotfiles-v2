@@ -33,7 +33,6 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
   - [[#load-after][:load-after]]
 - [[#keep-emacsd-clean][Keep .emacs.d Clean]]
 - [[#update-load-path][Update Load Path]]
-- [[#default-coding-system][Default Coding System]]
 - [[#server-mode][Server Mode]]
 - [[#desktop-environment][Desktop Environment]]
 - [[#keyboard-bindings][Keyboard Bindings]]
@@ -94,7 +93,6 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
   - [[#set-margins-for-modes][Set Margins for Modes]]
   - [[#control-buffer-placement][Control Buffer Placement]]
   - [[#taming-popups-with-popperel][Taming Popups with Popper.el]]
-- [[#credential-management][Credential Management]]
 - [[#file-browsing][File Browsing]]
   - [[#dired][Dired]]
   - [[#opening-files-externally][Opening Files Externally]]
@@ -136,7 +134,6 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
     - [[#rust][Rust]]
     - [[#emacs-lisp][Emacs Lisp]]
     - [[#scheme][Scheme]]
-    - [[#zig][Zig]]
     - [[#markdown][Markdown]]
     - [[#html][HTML]]
     - [[#yaml][YAML]]
@@ -150,17 +147,10 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
     - [[#rainbow-mode][Rainbow Mode]]
   - [[#tools][Tools]]
     - [[#debbugs-mainly-for-guix][Debbugs (mainly for Guix)]]
-- [[#game-development][Game Development]]
-  - [[#substratic-forge][Substratic Forge]]
 - [[#writing][Writing]]
   - [[#previewing-info-files][Previewing Info files]]
-- [[#streaming][Streaming]]
-  - [[#obs-websocket][obs-websocket]]
-  - [[#live-crafterel][live-crafter.el]]
 - [[#applications][Applications]]
   - [[#binding-prefix][Binding Prefix]]
-  - [[#mail][Mail]]
-  - [[#finance][Finance]]
   - [[#eshell][eshell]]
     - [[#configuration][Configuration]]
     - [[#shell-commands][Shell Commands]]
@@ -171,18 +161,6 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
     - [[#toggling-eshell][Toggling Eshell]]
   - [[#vterm][vterm]]
   - [[#ediff][ediff]]
-  - [[#chat][Chat]]
-    - [[#tracking][Tracking]]
-    - [[#telegram][Telegram]]
-    - [[#erc][ERC]]
-      - [[#configuration][Configuration]]
-      - [[#bindings][Bindings]]
-      - [[#sharing-files-with-0x0][Sharing Files with 0x0]]
-  - [[#rss-with-elfeed][RSS with Elfeed]]
-  - [[#media][Media]]
-    - [[#mpv][mpv]]
-    - [[#emms][EMMS]]
-  - [[#gemini][Gemini]]
 - [[#system-utilities][System Utilities]]
   - [[#guix][Guix]]
   - [[#daemons][Daemons]]
@@ -383,6 +361,14 @@ This keyword causes a body to be executed after other packages/features are load
 
 #+end_src
 
+*Guix Packages*
+
+#+begin_src scheme :noweb-ref packages :noweb-sep ""
+
+  "emacs-setup"
+
+#+end_src
+
 * Keep .emacs.d Clean
 
 I don't want a bunch of transient files showing up as untracked in the Git repo so I move them all to another location.
@@ -425,16 +411,6 @@ I've got a folder of custom Emacs Lisp libraries which must be added to the load
 
 #+end_src
 
-* Default Coding System
-
-Avoid constant errors on Windows about the coding system by setting the default to UTF-8.
-
-#+begin_src emacs-lisp
-
-  (set-default-coding-systems 'utf-8)
-
-#+end_src
-
 * Server Mode
 
 Start the Emacs server from this instance so that all =emacsclient= calls are routed here.
@@ -472,7 +448,6 @@ Despite the code being in Desktop.org, include the emacs packages for the deskto
 #+end_src
 
 * Keyboard Bindings
-
 ** ESC Cancels All
 
 #+begin_src emacs-lisp
@@ -1800,8 +1775,7 @@ Emacs' default buffer placement algorithm is pretty disruptive if you like setti
                    '(file))
              (list (openwith-make-extension-regexp
                     '("xbm" "pbm" "pgm" "ppm" "pnm"
-                      "png" "gif" "bmp" "tif" "jpeg")) ;; Removed jpg because Telega was
-                   ;; causing feh to be opened...
+                      "png" "gif" "bmp" "tif" "jpeg"))
                    "feh"
                    '(file))
              (list (openwith-make-extension-regexp

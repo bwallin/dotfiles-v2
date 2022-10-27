@@ -31,9 +31,6 @@ This file contains configuration for my overall desktop environment.  My workflo
   - [[#browsers][Browsers]]
     - [[#qutebrowser][Qutebrowser]]
     - [[#vimb][vimb]]
-  - [[#mail][Mail]]
-  - [[#password-management][Password Management]]
-    - [[#syncing-passwords][Syncing Passwords]]
   - [[#audio-device-control][Audio Device Control]]
   - [[#media-players][Media Players]]
     - [[#mpv][mpv]]
@@ -42,7 +39,6 @@ This file contains configuration for my overall desktop environment.  My workflo
   - [[#document-readers][Document Readers]]
   - [[#syncthing][Syncthing]]
   - [[#flatpak][Flatpak]]
-  - [[#printing][Printing]]
   - [[#desktop-tools][Desktop Tools]]
   - [[#system-tools][System Tools]]
   - [[#xorg-tools][Xorg Tools]]
@@ -228,12 +224,7 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
     (with-eval-after-load 'perspective
       ;; Set up perspective names on initial workspaces
       (exwm-workspace-switch-create 0)
-      (persp-switch "Chat")
-
-      ;; Launch Telega in workspace 0 if we've logged in before
-      (when (file-exists-p "~/.telega/db.sqlite")
-        (telega nil))
-
+      (persp-switch "Org")
       (persp-kill "Main")
       (exwm-workspace-switch-create 1)
       (exwm-workspace-switch-create 2)
@@ -257,18 +248,13 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
     (exwm/run-in-background "nm-applet")
     (exwm/run-in-background "syncthing-gtk --minimized")
     (exwm/run-in-background "udiskie -t")
-    (exwm/run-in-background "redshift -l 47.675510:-122.203362 -t 6500:3500"))
-    ;; Athens
-    ;(exwm/run-in-background "redshift -l 37.983810:23.727539 -t 6500:3500"))
+    (exwm/run-in-background "redshift -l 40.165730:-105.101189 -t 6500:3500"))
 
   (defun bw/setup-window-by-class ()
     (interactive)
     (pcase exwm-class-name
       ("Emacs" (call-interactively #'exwm-input-toggle-keyboard))
-      ("Xephyr" (call-interactively #'exwm-input-toggle-keyboard))
       ("discord" (exwm-workspace-move-window 3))
-      ("Microsoft Teams - Preview" (exwm-workspace-move-window 3))
-      ("Spotify" (exwm-workspace-move-window 4))
       ("Vimb" (exwm-workspace-move-window 2))
       ("qutebrowser" (exwm-workspace-move-window 2))
       ("qjackctl" (exwm-floating-toggle-floating))
@@ -918,29 +904,13 @@ I use a script to automatically configure multiple displays with =xrandr= when I
 
 #+begin_src sh :tangle .bin/update-screens :shebang #!/bin/sh
 
-case $(hostname) in
+  case $(hostname) in
 
-    zerocool)
-        xrandr --output VIRTUAL1 --off --output eDP1 --mode 2560x1440 --pos 3840x416 --rotate normal --output DP1 --off --output HDMI1 --off --output DP1-3 --off --output DP1-2 --off --output DP1-1 --primary --mode 3840x2160 --pos 0x0 --rotate normal --output DP2 --off
-        ;;
+      crustynubbin)
+          xrandr --output LVDS-1 --primary --mode 1366x768 --pos 0x0 --rotate normal --output VGA-1 --off --output HDMI-1 --off --output DP-1 --off --output HDMI-2 --off --output HDMI-3 --off --output DP-2 --off --output DP-3 --off
+          ;;
 
-    acidburn)
-        xrandr --output eDP-1 --mode 2160x1350 --pos 2560x45 --rotate normal --output HDMI-1 --off --output DP-1 --off --output DP-2 --off --output DP-3 --off --output DP-4 --off --output DP-3-1 --off --output DP-3-2 --off --output DP-3-3 --off --output DP-3-1 --off --output DP-3-2 --off --output DP-3-3 --primary --mode 2560x1440 --pos 0x0 --rotate normal
-        ;;
-
-    davinci)
-        # Temporary: this is for docking my laptop at home with HDMI!
-        #xrandr --output HDMI-2 --mode 3840x2160 --pos 0x0 --scale 0.6x0.6 --primary --rotate normal --output HDMI-1 --off --output DP-1 --off --output eDP-1 --mode 1920x1080 --pos 2304x216 --rotate normal --output DP-2 --off
-        xrandr --output eDP-1 --mode 1920x1080 --pos 2560x360 --rotate normal --output DP-1-2 --primary --mode 2560x1440 --pos 0x0 --rotate normal --output HDMI-2 --off --output HDMI-1 --off --output DP-1 --off --output DP-1-3 --off --output DP-2 --off --output DP-1-1 --off
-        ;;
-
-    phantom)
-        # On a new install, run this command first to ensure HDMI works!
-        # xrandr --setprovideroutputsource nouveau modesetting
-        xrandr --output eDP-1 --primary --mode 3840x2160 --pos 0x0 --rotate normal --output eDP-1-2 --off --output HDMI-1-1 --mode 3840x2160 --pos 3840x0 --rotate normal --output DP-1-1 --off --output DP-1-2 --off
-        ;;
-
-esac
+  esac
 
 #+end_src
 
