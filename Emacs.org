@@ -1061,6 +1061,13 @@ Emacs can be prompted for the PIN of GPG private keys, we just need to set
 #+end_src
 
 * Editing Configuration
+** Trailing Newline
+
+POSIX standard is to always end with a newline.
+
+#+begin_src emacs-lisp
+  (setq require-final-newline t)
+#+end_src
 
 ** Tab Widths
 
@@ -2193,14 +2200,14 @@ It's nice to have a table of contents section for long literate configuration fi
                              "#+title: ${title}\n#+category: ${title}\n#+filetags: Project\n"
                              ("Tasks"))))
 
-  (defun my/org-roam-filter-by-tag (tag-name)
+  (defun bw/org-roam-filter-by-tag (tag-name)
     (lambda (node)
       (member tag-name (org-roam-node-tags node))))
 
-  (defun my/org-roam-list-notes-by-tag (tag-name)
+  (defun bw/org-roam-list-notes-by-tag (tag-name)
     (mapcar #'org-roam-node-file
             (seq-filter
-             (my/org-roam-filter-by-tag tag-name)
+             (bw/org-roam-filter-by-tag tag-name)
              (org-roam-node-list))))
 
   (defun org-roam-node-insert-immediate (arg &rest args)
@@ -2231,17 +2238,17 @@ It's nice to have a table of contents section for long literate configuration fi
   (defun bw/org-roam-capture-task ()
     (interactive)
     ;; Add the project file to the agenda after capture is finished
-    (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+    (add-hook 'org-capture-after-finalize-hook #'bw/org-roam-project-finalize-hook)
 
     ;; Capture the new task, creating the project file if necessary
     (org-roam-capture- :node (org-roam-node-read
                               nil
-                              (my/org-roam-filter-by-tag "Project"))
+                              (bw/org-roam-filter-by-tag "Project"))
                        :templates (list bw/org-roam-project-template)))
 
-  (defun my/org-roam-refresh-agenda-list ()
+  (defun bw/org-roam-refresh-agenda-list ()
     (interactive)
-    (setq org-agenda-files (my/org-roam-list-notes-by-tag "Project")))
+    (setq org-agenda-files (bw/org-roam-list-notes-by-tag "Project")))
 
   (defhydra bw/org-roam-jump-menu (:hint nil)
     "
@@ -2270,7 +2277,7 @@ It's nice to have a table of contents section for long literate configuration fi
 
     (:when-loaded
       (org-roam-db-autosync-mode)
-      (my/org-roam-refresh-agenda-list))
+      (bw/org-roam-refresh-agenda-list))
 
     (:option
      org-roam-directory "~/Notes/Roam/"

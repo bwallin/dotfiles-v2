@@ -34,13 +34,6 @@ This file contains the description and configuration of the productivity workflo
 ** Ensure sufficient metadata on tasks for effective filtering
 ** Keep a daily log of work being done
 
-* Tasks
-
-Here are some things I need to do to make this workflow even more effective:
-
-** TODO Figure out how to refile tasks to an org-capture target
-I want to put them in the "Completed Tasks" entry of that day
-
 * File Paths
 
 The location where my =Notes= folder lives changes in some cases
@@ -61,39 +54,39 @@ The location where my =Notes= folder lives changes in some cases
   (setq org-default-notes-file (bw/org-path "Inbox.org"))
 
   (with-eval-after-load 'org-roam
-    (defun my/org-roam-project-finalize-hook ()
+    (defun bw/org-roam-project-finalize-hook ()
       "Adds the captured project file to `org-agenda-files' if the
   capture was not aborted."
       ;; Remove the hook since it was added temporarily
-      (remove-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+      (remove-hook 'org-capture-after-finalize-hook #'bw/org-roam-project-finalize-hook)
 
       ;; Add project file to the agenda list if the capture was confirmed
       (unless org-note-abort
         (with-current-buffer (org-capture-get :buffer)
           (add-to-list 'org-agenda-files (buffer-file-name)))))
 
-    (defun my/org-roam-find-project ()
+    (defun bw/org-roam-find-project ()
       (interactive)
       ;; Add the project file to the agenda after capture is finished
-      (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+      (add-hook 'org-capture-after-finalize-hook #'bw/org-roam-project-finalize-hook)
 
       ;; Select a project file to open, creating it if necessary
       (org-roam-node-find
        nil
        nil
-       (my/org-roam-filter-by-tag "Project")
+       (bw/org-roam-filter-by-tag "Project")
        :templates
        '(("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
           :unnarrowed t))))
 
-    (defun my/org-roam-capture-inbox ()
+    (defun bw/org-roam-capture-inbox ()
       (interactive)
       (org-roam-capture- :node (org-roam-node-create)
                          :templates '(("i" "inbox" plain "* %?"
                                        :if-new (file+head "Inbox.org" "#+title: Inbox\n")))))
 
-    (defun my/org-roam-copy-todo-to-today ()
+    (defun bw/org-roam-copy-todo-to-today ()
       (interactive)
       (let ((org-refile-keep t) ;; Set this to nil to delete the original!
             (org-roam-dailies-capture-templates
@@ -115,7 +108,7 @@ The location where my =Notes= folder lives changes in some cases
     ;; (add-to-list 'org-after-todo-state-change-hook
     ;;              (lambda ()
     ;;                (when (equal org-state "DONE")
-    ;;                  (my/org-roam-copy-todo-to-today))))
+    ;;                  (bw/org-roam-copy-todo-to-today))))
     )
 
 #+end_src
@@ -279,192 +272,359 @@ I like to use =org-timer-set-timer= to set a countdown timer for a task based on
 
 The following blocks are being migrated over from my Org Mode configuration in [[file:Emacs.org][Emacs.org]].  I've disabled tangling for them so that they don't get written out to =workflow.el= in favor of my new configuration above.
 
+** General
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    ;; Autosave regularly
+    (add-hook 'auto-save-hook 'org-save-all-org-buffers)
+
+    ;; Not sure -- set 't' to change status in org-todo list?
+    (setq org-use-fast-todo-selection t)
+
+    ;; Setup todo states
+    ;; letter means indicator/keystroke
+    ;; left/right of slash @ means take note when entering/leaving
+    ;; lef/right of slash ! means record timestamp when entering/leaving state
+    (setq org-todo-keywords
+          (quote ((sequence "TODO(t)" "NEXT(n)" "IN_PROGRESS(i!)" "WAITING(w@)" "HOLD(h@)" "|" "DONE(d!)" "CANCELLED(c@)")
+                  (sequence "REPEAT(r)" "|" "DONE(d!)"))))
+    (setq org-todo-keyword-faces
+          '(("TODO" . "dodger blue") ("IN_PROGRESS" . "tomato") ("REPEAT" . "turquoise") ("WAITING" . "slate blue") ("CANCELED" . "dim gray") ("DONE" . "forest green")))
+
+    ;; Dependency enforcement
+    (setq org-enforce-todo-dependencies nil)
+    (setq org-enforce-todo-checkbox-dependencies t)
+
+    ;; When hitting alt-return on a header, please create a new one without
+    ;; messing up the one I'm standing on.
+    (setq org-insert-heading-respect-content t)
+
+    ;; Keep the indentation well structured by. OMG this is a must have. Makes
+    ;; it feel less like editing a big text file and more like a purpose built
+    ;; editor for org mode that forces the indentation. (Might be default in spacemacs?)
+    (setq org-startup-indented t)
+
+    ;; Attachments are inherited
+    (setq org-attach-use-inheritance t)
+
+    ;; Log and clock into respective drawers
+    (setq org-log-into-drawer t)
+
+    ;; Log reschedules to drawer
+    (setq org-log-reschedule (quote time))
+    (setq org-log-done nil)
+
+    ;; Don't instert blank before headings
+    (setcdr (assoc 'heading org-blank-before-new-entry) nil)
+
+    ;; Strike through done items
+    (set-face-attribute 'org-headline-done nil :strike-through t)
+
+    ;; Default priority is low
+    (setq org-priority-lowest 68)
+    (setq org-priority-highest 65)
+    (setq org-priority-default 68)
+
+    (setq org-tag-alist (quote ((:startgroup)
+                                ("@errand" . ?e)
+                                ("@office" . ?o)
+                                ("@home" . ?h)
+                                (:endgroup)
+                                ("WORK" . ?w)
+                                ("PROJECT" . ?p)
+                                ("NOTE" . ?n))))
+    (defun my/org-roam-copy-todo-to-today ()
+      (interactive)
+      (let ((org-refile-keep t) ;; Set this to nil to delete the original!
+            (org-roam-dailies-capture-templates
+              '(("t" "tasks" entry "%?"
+                :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
+            (org-after-refile-insert-hook #'save-buffer)
+            today-file
+            pos)
+        (save-window-excursion
+          (org-roam-dailies--capture (current-time) t)
+          (setq today-file (buffer-file-name))
+          (setq pos (point)))
+
+        ;; Only refile if the target file is different than the current file
+        (unless (equal (file-truename today-file)
+                      (file-truename (buffer-file-name)))
+          (org-refile nil nil (list "Tasks" today-file nil pos)))))
+
+    (add-to-list 'org-after-todo-state-change-hook
+                (lambda ()
+                  (when (equal org-state "DONE")
+                    (my/org-roam-copy-todo-to-today))))
+
+    )
+#+END_SRC
+** Locations
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    ;; Set dir/file defaults
+    (setq org-directory "~/Dropbox/org/zettelkasten")
+    (setq org-default-notes-file (concat org-directory "/inbox.org"))
+
+    ;; Use org-roam files for todos
+    (defun my/org-roam-filter-by-tag (tag-name)
+      (lambda (node)
+        (member tag-name (org-roam-node-tags node))))
+
+    (defun my/org-roam-list-notes-by-tag (tag-name)
+      (mapcar #'org-roam-node-file
+              (seq-filter
+              (my/org-roam-filter-by-tag tag-name)
+              (org-roam-node-list))))
+
+    (defun my/org-roam-refresh-agenda-list ()
+      (interactive)
+      (setq org-agenda-files (my/org-roam-list-notes-by-tag "Agenda")))
+
+    ;; Build the agenda list the first time for the session
+    (my/org-roam-refresh-agenda-list)
+
+    ;; Enable org-refile accross files
+    (setq org-refile-targets
+          '((nil :maxlevel . 3)
+            (org-agenda-files :maxlevel . 1))))
+#+END_SRC
+** Keybinds
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (spacemacs/set-leader-keys-for-major-mode 'org-mode "oCs" 'bh/punch-in)
+    (spacemacs/set-leader-keys-for-major-mode 'org-mode "oCx" 'bh/punch-out)
+    (spacemacs/set-leader-keys-for-major-mode 'org-mode "oCv" 'org-columns)
+    )
+#+END_SRC
 ** Agenda
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    ;; Overwrite the current window with the agenda
+    (setq org-agenda-window-setup 'current-window)
 
-#+begin_src emacs-lisp :tangle no
+    ;; Default to day view
+    (setq org-agenda-span 'day)
 
-  ;; Configure custom agenda views
-  (setq org-agenda-custom-commands
-        `(("d" "Dashboard"
-           ((agenda "" ((org-deadline-warning-days 7)))
-            (todo "FLOW" ((org-agenda-overriding-header "Workflow Tasks")))
-            (tags-todo "+PRIORITY=\"A\""
-                       ((org-agenda-overriding-header "High Priority")))
-            (todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))
-            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))
-            (todo "TODO"
-                  ((org-agenda-overriding-header "Unprocessed Inbox Tasks")
-                   (org-agenda-files '(,(bw/org-path "Inbox.org")))
-                   (org-agenda-text-search-extra-files nil)))))
+    ;; Set agenda view formatting
+    (setq org-agenda-breadcrumbs-separator "/")
+    (setq org-agenda-prefix-format '((agenda . " %i %-12:c%?-12t% s %b")
+                                     (timeline . "  % s")
+                                     (todo . " %i %-12:c %b")
+                                     (tags . " %i %-12:c %b")
+                                     (search . " %i %-12:c")))
 
-          ("n" "Next Tasks"
-           ((todo "NEXT"
-                  ((org-agenda-overriding-header "Next Tasks")))))
+    ;; Default to follow mode in agenda view
+    (setq org-agenda-start-with-follow-mode t)
 
-          ("p" "Active Projects"
-           ((agenda "")
-            (todo "ACTIVE"
-                  ((org-agenda-overriding-header "Active Projects")
-                   (org-agenda-max-todos 5)
-                   (org-agenda-files org-agenda-files)))))
+    ;; Habit options
+    (setq org-habit-graph-column 83)
+    (setq org-habit-show-habits-only-for-today t)
+    (setq org-habit-preceding-days 30)
+    (setq org-habit-following-days 3)
 
-          ("w" "Workflow Status"
-           ((todo "WAIT"
-                  ((org-agenda-overriding-header "Waiting on External")
-                   (org-agenda-files org-agenda-files)))
-            (todo "REVIEW"
-                  ((org-agenda-overriding-header "In Review")
-                   (org-agenda-files org-agenda-files)))
-            (todo "PLAN"
-                  ((org-agenda-overriding-header "In Planning")
-                   (org-agenda-todo-list-sublevels nil)
-                   (org-agenda-files org-agenda-files)))
-            (todo "BACKLOG"
-                  ((org-agenda-overriding-header "Project Backlog")
-                   (org-agenda-todo-list-sublevels nil)
-                   (org-agenda-files org-agenda-files)))
-            (todo "READY"
-                  ((org-agenda-overriding-header "Ready for Work")
-                   (org-agenda-files org-agenda-files)))
-            (todo "ACTIVE"
-                  ((org-agenda-overriding-header "Active Projects")
-                   (org-agenda-files org-agenda-files)))
-            (todo "COMPLETED"
-                  ((org-agenda-overriding-header "Completed Projects")
-                   (org-agenda-files org-agenda-files)))
-            (todo "CANC"
-                  ((org-agenda-overriding-header "Cancelled Projects")
-                   (org-agenda-files org-agenda-files)))))
+    ;; Don't alter foreground for blocked items in agenda
+    (set-face-foreground 'org-agenda-dimmed-todo-face nil)
 
-          ;; Projects on hold
-          ("h" tags-todo "+LEVEL=2/+HOLD"
-           ((org-agenda-overriding-header "On-hold Projects")
-            (org-agenda-files org-agenda-files)))
+    ;; Start week on Sunday
+    (setq org-agenda-start-on-weekday 7)
 
-          ;; Low-effort next actions
-          ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-           ((org-agenda-overriding-header "Low Effort Tasks")
-            (org-agenda-max-todos 20)
-            (org-agenda-files org-agenda-files)))))
-
-  (use-package org-super-agenda
-    :after org
-    :config
-    (org-super-agenda-mode 1)
+    ;; Super agenda
+    (org-super-agenda-mode)
     (setq org-super-agenda-groups
-          '(;; Each group has an implicit boolean OR operator between its selectors.
-            (:name "Today"  ; Optionally specify section name
-                   :time-grid t  ; Items that appear on the time grid
-                   :todo "NEXT")  ; Items that have this TODO keyword
-            (:name "Important"
-                   ;; Single arguments given alone
-                   :priority "A")
-            )))
+          '( ;; Each group has an implicit boolean OR operator between its selectors.
+            (:name "Today"          ; Optionally specify section name
+                   :time-grid t     ; Items that appear on the time grid
+                   :order 0)
+            (:name "Top Priority" :priority>= "C" :order 1)
+            (:name "Work" :category "work" :order 2)
+            (:name "Habits" :habit t :order 10)
+            (:auto-category t :order 2)
+            ))
+    ;; Fix for issue with key mapping interaction. See: https://github.com/alphapapa/org-super-agenda/issues/50
+    (setq org-super-agenda-header-map (make-sparse-keymap))
+    (setq org-stuck-projects
+          '("+PROJECT/-DONE" ("NEXT" ) ))
+    )
+#+END_SRC
+** Clock
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (require 'org-clock)
+    (setq org-clock-into-drawer "CLOCKING")
 
-#+end_src
+    (setq org-clock-total-time-cell-format "%s")
+    (setq org-duration-format 'h:mm)
+    (setq org-clock-report-include-clocking-task t)
+    (setq org-clock-out-remove-zero-time-clocks t)
 
-** Tags
+    ;; Set state on clock-in/out
+    (setq org-clock-in-switch-to-state "IN_PROGRESS")
+    (setq org-clock-out-switch-to-state "TODO")
+    (setq org-clock-out-when-done t)
 
-#+begin_src emacs-lisp :tangle no
+    (setq org-clock-persist 'history)
+    (org-clock-persistence-insinuate)
 
-  ;; Configure common tags
-  (setq org-tag-alist
-    '((:startgroup)
-       ; Put mutually exclusive tags here
-       (:endgroup)
-       ("@home" . ?H)
-       ("@work" . ?W)
-       ("batch" . ?b)
-       ("next" . ?n)
-       ("followup" . ?f)
-       ("recurring" . ?r)))
+    (setq bh/keep-clock-running nil)
 
-  ;; Configure task state change tag triggers
-  ;; (setq org-todo-state-tags-triggers
-  ;;   (quote (("CANC" ("cancelled" . t))
-  ;;           ("WAIT" ("waiting" . t))
-  ;;           ("HOLD" ("waiting") ("onhold" . t))
-  ;;           (done ("waiting") ("onhold"))
-  ;;           ("TODO" ("waiting") ("cancelled") ("onhold"))
-  ;;           ("DONE" ("waiting") ("cancelled") ("onhold")))))
+    (defun bh/find-project-task ()
+      "Move point to the parent (project) task if any"
+      (save-restriction
+        (widen)
+        (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
+          (while (org-up-heading-safe)
+            (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+              (setq parent-task (point))))
+          (goto-char parent-task)
+          parent-task)))
 
-#+end_src
+    (defun bh/punch-in (arg)
+      "Start continuous clocking and set the default task to the
+  selected task.  If no task is selected set the Organization task
+  as the default task."
+      (interactive "p")
+      (setq bh/keep-clock-running t)
+      (if (equal major-mode 'org-agenda-mode)
+          ;;
+          ;; We're in the agenda
+          ;;
+          (let* ((marker (org-get-at-bol 'org-hd-marker))
+                 (tags (org-with-point-at marker (org-get-tags-at))))
+            (if (and (eq arg 4) tags)
+                (org-agenda-clock-in '(16))
+              (bh/clock-in-organization-task-as-default)))
+        ;;
+        ;; We are not in the agenda
+        ;;
+        (save-restriction
+          (widen)
+                                          ; Find the tags on the current task
+          (if (and (equal major-mode 'org-mode) (not (org-before-first-heading-p)) (eq arg 4))
+              (org-clock-in '(16))
+            (bh/clock-in-organization-task-as-default)))))
 
-** Tasks
+    (defun bh/punch-out ()
+      (interactive)
+      (setq bh/keep-clock-running nil)
+      (when (org-clock-is-active)
+        (org-clock-out))
+      (org-agenda-remove-restriction-lock))
 
-#+begin_src emacs-lisp :tangle no
+    (defun bh/clock-in-default-task ()
+      (save-excursion
+        (org-with-point-at org-clock-default-task
+          (org-clock-in))))
 
-  ;; Configure TODO settings
-  (setq org-datetree-add-timestamp 'inactive)
-  (setq org-habit-graph-column 60)
-  (setq org-fontify-whole-heading-line t)
-  (setq org-todo-keywords
-    '((sequence "TODO(t)" "NEXT(n)" "PROC" "FLOW(f)" "|" "DONE(d!)")
-      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")
-      (sequence "GOAL(g)" "|" "ACHIEVED(v)" "MAINTAIN(m)")))
+    (defun bh/clock-in-parent-task ()
+      "Move point to the parent (project) task if any and clock in"
+      (let ((parent-task))
+        (save-excursion
+          (save-restriction
+            (widen)
+            (while (and (not parent-task) (org-up-heading-safe))
+              (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+                (setq parent-task (point))))
+            (if parent-task
+                (org-with-point-at parent-task
+                  (org-clock-in))
+              (when bh/keep-clock-running
+                (bh/clock-in-default-task)))))))
 
-#+end_src
+    (defvar bh/organization-task-id "498085c5-4f62-4774-b09c-4d7ba8bb5d3a")
 
-** Capture Templates
+    (defun bh/clock-in-organization-task-as-default ()
+      (interactive)
+      (org-with-point-at (org-id-find bh/organization-task-id 'marker)
+        (org-clock-in '(16))))
 
-Information on template expansion can be found in the [[https://orgmode.org/manual/Template-expansion.html#Template-expansion][Org manual]].
+    (defun bh/clock-out-maybe ()
+      (when (and bh/keep-clock-running
+                 (not org-clock-clocking-in)
+                 (marker-buffer org-clock-default-task)
+                 (not org-clock-resolving-clocks-due-to-idleness))
+        (bh/clock-in-parent-task)))
 
-#+begin_src emacs-lisp :tangle no
+    (add-hook 'org-clock-out-hook 'bh/clock-out-maybe 'append)
 
-  (defun bw/read-file-as-string (path)
-    (with-temp-buffer
-      (insert-file-contents path)
-      (buffer-string)))
+    ; Set default column view headings: Task Effort Clock_Summary
+    (setq org-columns-default-format "%80ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM")
+    (setq org-global-properties (quote (("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
+                                    ("STYLE_ALL" . "habit"))))
+    )
+#+END_SRC
+** Capturing
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (defun transform-square-brackets-to-round-ones(string-to-transform)
+      "Transforms [ into ( and ] into ), other chars left unchanged."
+      (concat
+       (mapcar #'(lambda (c) (if (equal c ?[) ?\( (if (equal c ?]) ?\) c))) string-to-transform))
+      )
 
-  (setq org-capture-templates
-    `(("t" "Tasks / Projects")
-      ("tt" "Task" entry (file+olp ,(bw/org-path "Projects.org") "Projects" "Inbox")
-           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
-      ("ts" "Clocked Entry Subtask" entry (clock)
-           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
-      ("tp" "New Project" entry (file+olp ,(bw/org-path "Projects.org") "Projects" "Inbox")
-           "* PLAN %?\n  %U\n  %a\n  %i" :empty-lines 1)
+    (defun org-journal-find-location ()
+      ;; Open today's journal, but specify a non-nil prefix argument in order to
+      ;; inhibit inserting the heading; org-capture will insert the heading.
+      (org-journal-new-entry t)
+      (unless (eq org-journal-file-type 'daily)
+        (org-narrow-to-subtree))
+      (goto-char (point-max)))
 
-      ("j" "Journal Entries")
-      ("jj" "Journal" entry
-           (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           ;"\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-           ,(bw/read-file-as-string "~/Notes/Templates/Daily.org")
-           :clock-in :clock-resume
-           :empty-lines 1)
-      ("jm" "Meeting" entry
-           (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-           :clock-in :clock-resume
-           :empty-lines 1)
-      ("jt" "Thinking" entry
-           (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           "\n* %<%I:%M %p> - %^{Topic} :thoughts:\n\n%?\n\n"
-           :clock-in :clock-resume
-           :empty-lines 1)
-      ("jc" "Clocked Entry Notes" entry
-           (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           "* %<%I:%M %p> - %K :notes:\n\n%?"
-           :empty-lines 1)
-      ("jg" "Clocked General Task" entry
-           (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           "* %<%I:%M %p> - %^{Task description} %^g\n\n%?"
-           :clock-in :clock-resume
-           :empty-lines 1)
+    (setq org-capture-templates '(("t" "Todo" entry (file "~/Dropbox/org/personal/inbox.org")
+                                   (file "~/Dropbox/org/personal/templates/tpl-todo.txt"))
+                                  ("n" "Note" entry (file "~/Dropbox/org/personal/inbox.org")
+                                   "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+                                  ("j" "Journal entry" plain (function org-journal-find-location)
+                                   "** %(format-time-string org-journal-time-format)%^{Title}\n%i%?"
+                                   :jump-to-captured t :immediate-finish t)
+                                  ("p" "Protocol" entry (file "~/Dropbox/org/personal/inbox.org")
+                                   "* %^{Title}\nSource: [[%:link][%(transform-square-brackets-to-round-ones \"%:description\")]]\nCaptured On: %U\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
+                                  ("L" "Protocol Link" entry (file "~/Dropbox/org/personal/inbox.org")
+                                   "* %? [[%:link][%(transform-square-brackets-to-round-ones \"%:description\")]] \nCaptured On: %U"))))
+#+END_SRC
+** Other/package
+*** org-babel
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (setq org-babel-load-languages
+          '((python . t)
+            (clojure . t)
+            (js . t)
+            (emacs-lisp . t)
+            (shell . t)
+            (dot . t))))
+#+END_SRC
 
-      ("w" "Workflows")
-      ("we" "Checking Email" entry (file+olp+datetree ,(bw/get-todays-journal-file-name))
-           "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+*** org-roam
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-v2-ack t)
+#+END_SRC
 
-      ("m" "Metrics Capture")
-      ("mw" "Weight" table-line (file+headline "~/Notes/Metrics.org" "Weight")
-       "| %U | %^{Weight} | %^{Notes} |" :kill-buffer)
-      ("mp" "Blood Pressure" table-line (file+headline "~/Notes/Metrics.org" "Blood Pressure")
-       "| %U | %^{Systolic} | %^{Diastolic} | %^{Notes}" :kill-buffer)))
+#+BEGIN_SRC emacs-lisp
+  (setq org-roam-v2-ack t)
+  (with-eval-after-load 'org
+    (setq org-roam-directory "~/Dropbox/org/zettelkasten")
+    (setq org-roam-db-location "~/Dropbox/org/zettelkasten/db/org-roam.db"))
+#+END_SRC
+*** org-edna
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (org-edna-mode))
+#+END_SRC
 
-#+end_src
-
+*** org-protocol
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (require 'org-protocol)
+    (add-to-list 'org-modules 'org-protocol))
+#+END_SRC
+*** org-journal
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'org
+    (setq org-journal-enable-agenda-integration f)
+    (setq org-journal-file-header (concat "#+TITLE: Weekly Journal\n"
+                                          "#+STARTUP: overview\n")))
+#+END_SRC
 * Module Setup
 
 This Org file produces a file called =bw-workflow.el= which gets loaded up in =init.el=; export it as a feature so that it can be loaded with =require=.
