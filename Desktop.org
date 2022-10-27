@@ -360,9 +360,6 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
   (bw/send-polybar-hook "exwm" 1)
   (bw/send-polybar-hook "exwm-path" 1))
 
-(defun bw/update-polybar-telegram ()
-  (bw/send-polybar-hook "telegram" 1))
-
 (defun bw/polybar-exwm-workspace ()
   (pcase exwm-workspace-current-index
     (0 "")
@@ -377,13 +374,6 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
         (substring-no-properties workspace-path)
       "")))
 
-(defun bw/polybar-mail-count (max-count)
-  (if (and bw/mail-enabled bw/mu4e-inbox-query)
-    (let* ((mail-count (shell-command-to-string
-                         (format "mu find --nocolor -n %s \"%s\" | wc -l" max-count bw/mu4e-inbox-query))))
-      (format " %s" (string-trim mail-count)))
-    ""))
-
 (defun bw/telega-normalize-name (chat-name)
   (let* ((trimmed-name (string-trim-left (string-trim-right chat-name "}") "◀{"))
          (first-name (nth 0 (split-string trimmed-name " "))))
@@ -395,11 +385,6 @@ I use Emacs as the desktop window manager thanks to the excellent EXWM.  This co
             (fg-color (face-attribute fg-face :foreground)))
     (format "%%{F%s}%s%%{F-}" fg-color (bw/telega-normalize-name text))
     text))
-
-(defun bw/polybar-telegram-chats ()
-  (if (> (length tracking-buffers) 0)
-    (format " %s" (string-join (mapcar 'bw/propertized-to-polybar tracking-buffers) ", "))
-    ""))
 
 (add-hook 'exwm-workspace-switch-hook #'bw/update-polybar-exwm)
 (add-hook 'bufler-workspace-set-hook #'bw/update-polybar-exwm)
@@ -561,8 +546,7 @@ font-2 = "Material Icons:size=<<get-setting(name="polybar/font-2-size")>>;5"
 font-3 = "Fira Mono:size=<<get-setting(name="polybar/font-3-size")>>;-3"
 
 modules-left = exwm exwm-path
-modules-center = spotify
-modules-right = telegram mu4e cpu temperature battery date
+modules-right = cpu temperature battery date
 
 tray-position = right
 tray-padding = 2
@@ -583,24 +567,6 @@ format-padding = 1
 type = custom/ipc
 hook-0 = emacsclient -e "(bw/polybar-exwm-workspace-path)" | sed -e 's/^"//' -e 's/"$//'
 format-foreground = #f78c6c
-initial = 1
-
-[module/spotify]
-type = custom/script
-exec = ~/.config/polybar/player-status.sh
-interval = 3
-
-[module/mu4e]
-type = custom/ipc
-hook-0 = emacsclient -e '(bw/polybar-mail-count 500)' | sed -e 's/^"//' -e 's/"$//'
-initial = 1
-format-underline = ${colors.underline-1}
-click-left = emacsclient -e '(bw/go-to-inbox)'
-
-[module/telegram]
-type = custom/ipc
-hook-0 = emacsclient -e '(bw/polybar-telegram-chats)' | sed -e 's/^"//' -e 's/"$//'
-format-padding = 3
 initial = 1
 
 [module/xkeyboard]
@@ -705,29 +671,6 @@ label-warn-foreground = ${colors.secondary}
 
 #+end_src
 
-I created a simple script to grab Spotify player information using =playerctl=:
-
-*.config/polybar/player-status.sh:*
-
-#+begin_src sh :tangle .config/polybar/player-status.sh :shebang #!/bin/sh
-
-status="$(playerctl -p spotify status 2>&1)"
-if [ "$status" != "No players found" ]
-then
-  artist="$(playerctl -p spotify metadata artist)"
-  if [ "$artist" != "" ]
-  then
-    echo " $(playerctl -p spotify metadata artist) - $(playerctl -p spotify metadata title)"
-  else
-    # Clear any string that was previously displayed
-    echo ""
-  fi
-else
-  # Clear any string that was previously displayed
-  echo ""
-fi
-
-#+end_src
 
 *Guix Packages*
 
@@ -1325,28 +1268,6 @@ shortcut-add man=https://fanglingsu.github.io/vimb/man.html
 
 #+end_src
 
-** Mail
-** Password Management
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-"password-store"
-
-#+end_src
-
-*** Syncing Passwords
-
-#+begin_src sh :tangle .bin/sync-passwords :shebang #!/bin/sh
-
-pass git pull
-pass git push
-
-notify-send -i "emblem-synchronizing" "Passwords synced!"
-
-#+end_src
-
 ** Audio Device Control
 
 *Guix Packages*
@@ -1504,16 +1425,6 @@ flatpak install --user flathub com.discordapp.Discord
 #+begin_src scheme :noweb-ref packages :noweb-sep ""
 
 "flatpak"
-
-#+end_src
-
-** Printing
-
-*Guix Packages*
-
-#+begin_src scheme :noweb-ref packages :noweb-sep ""
-
-"system-config-printer"
 
 #+end_src
 
