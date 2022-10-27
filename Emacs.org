@@ -956,7 +956,7 @@ The [[https://github.com/myrjola/diminish.el][diminish]] package hides pesky min
   (bw/leader-key-def
     "t"  '(:ignore t :which-key "toggles")
     "tw" 'whitespace-mode
-    "tt" '(counsel-load-theme :which-key "choose theme"))
+    "tt" '(consult-theme :which-key "choose theme"))
 
 #+end_src
 
@@ -1185,7 +1185,7 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
   (defun bw/org-file-show-headings (org-file)
     (interactive)
     (find-file (expand-file-name org-file))
-    (counsel-org-goto)
+    (consult-org-heading)
     (org-overview)
     (org-reveal)
     (org-show-subtree)
@@ -1198,13 +1198,13 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
 #+begin_src emacs-lisp
 
   (bw/leader-key-def
-    "fn" '((lambda () (interactive) (counsel-find-file "~/Notes/")) :which-key "notes")
+    "fn" '((lambda () (interactive) (consult-find "~/Notes/")) :which-key "notes")
     "fd"  '(:ignore t :which-key "dotfiles")
     "fdd" '((lambda () (interactive) (find-file "~/.dotfiles/Desktop.org")) :which-key "desktop")
     "fde" '((lambda () (interactive) (find-file (expand-file-name "~/.dotfiles/Emacs.org"))) :which-key "edit config")
     "fdE" '((lambda () (interactive) (bw/org-file-show-headings "~/.dotfiles/Emacs.org")) :which-key "edit config")
     "fdm" '((lambda () (interactive) (find-file "~/.dotfiles/Mail.org")) :which-key "mail")
-    "fdM" '((lambda () (interactive) (counsel-find-file "~/.dotfiles/.config/guix/manifests/")) :which-key "manifests")
+    "fdM" '((lambda () (interactive) (consult-find "~/.dotfiles/.config/guix/manifests/")) :which-key "manifests")
     "fds" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Systems.org" "Base Configuration")) :which-key "base system")
     "fdS" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Systems.org" system-name)) :which-key "this system")
     "fdp" '((lambda () (interactive) (bw/org-file-jump-to-heading "~/.dotfiles/Desktop.org" "Panel via Polybar")) :which-key "polybar")
@@ -1232,7 +1232,7 @@ Check out my [[https://systemcrafters.cc/learning-emacs-lisp/][Learning Emacs Li
 
 * Completion System
 
-Trying this as an alternative to Ivy and Counsel.
+Trying Consult+Vertico as an alternative to Ivy and Counsel.
 
 ** Preserve Minibuffer History with savehist-mode
 
@@ -2014,8 +2014,6 @@ through =emacsclient.=
 
     "on"  '(org-toggle-narrow-to-subtree :which-key "toggle narrow")
 
-    "os"  '(bw/counsel-rg-org-files :which-key "search notes")
-
     "oa"  '(org-agenda :which-key "status")
     "ot"  '(org-todo-list :which-key "todos")
     "oc"  '(org-capture t :which-key "capture")
@@ -2537,8 +2535,7 @@ OK, this isn't Emacs configuration, but it's relevant to development!
 #+begin_src scheme :noweb-ref packages :noweb-sep ""
 
   "emacs-projectile"
-  "ripgrep" ;; For counsel-projectile-rg
-  "the-silver-searcher" ;; For counsel-projectile-ag
+  "ripgrep"
 
 #+end_src
 
@@ -2574,7 +2571,7 @@ This section contains project configurations for specific projects that I can't 
       "lr" 'xref-find-references
       "ln" 'lsp-ui-find-next-reference
       "lp" 'lsp-ui-find-prev-reference
-      "ls" 'counsel-imenu
+      "ls" 'consult-imenu
       "le" 'lsp-ui-flycheck-list
       "lS" 'lsp-ui-sideline-mode
       "lX" 'lsp-execute-code-action))
@@ -2793,8 +2790,6 @@ Configure TypeScript and JavaScript language modes
     (:hook flycheck-mode))
 
   (setup (:pkg helpful)
-    (:option counsel-describe-function-function #'helpful-callable
-             counsel-describe-variable-function #'helpful-variable)
     (:global [remap describe-function] helpful-function
              [remap describe-symbol] helpful-symbol
              [remap describe-variable] helpful-variable
