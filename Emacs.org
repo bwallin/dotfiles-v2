@@ -63,6 +63,7 @@ Other files in my dotfiles repo also contain Emacs Lisp code that get pulled in 
   - [[#tramp][TRAMP]]
   - [[#emacs-as-external-editor][Emacs as External Editor]]
 - [[#editing-configuration][Editing Configuration]]
+  - [[#trailing-newline][Trailing Newline]]
   - [[#tab-widths][Tab Widths]]
   - [[#use-spaces-instead-of-tabs-for-indentation][Use spaces instead of tabs for indentation]]
   - [[#commenting-lines][Commenting Lines]]
@@ -2241,7 +2242,7 @@ It's nice to have a table of contents section for long literate configuration fi
     ("e" bw/org-roam-goto-year)
     ("c" nil "cancel"))
 
-  (setup (:pkg org-roam :straight t)
+  (setup (:pkg org-roam)
     (setq org-roam-v2-ack t)
     (setq bw/daily-note-filename "%<%Y-%m-%d>.org"
           bw/daily-note-header "#+title: %<%Y-%m-%d %a>\n\n[[roam:%<%Y-%B>]]\n\n")
@@ -2301,7 +2302,7 @@ It's nice to have a table of contents section for long literate configuration fi
 
 #+begin_src scheme :noweb-ref packages :noweb-sep ""
 
-  ; "emacs-org-roam"
+  "emacs-org-roam"
 
 #+end_src
 
