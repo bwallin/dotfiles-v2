@@ -998,7 +998,7 @@ Emacs can be prompted for the PIN of GPG private keys, we just need to set
 
   (unless (or bw/is-termux
               (eq system-type 'windows-nt))
-    (setq epa-pinentry-mode 'loopback)
+    (setq epg-pinentry-mode 'loopback)
     (pinentry-start))
 
 #+end_src
@@ -1008,7 +1008,6 @@ Emacs can be prompted for the PIN of GPG private keys, we just need to set
 #+begin_src scheme :noweb-ref packages :noweb-sep ""
 
   "emacs-pinentry"
-  "pinentry-emacs"
 
 #+end_src
 
