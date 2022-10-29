@@ -12,8 +12,6 @@ This file contains the description and configuration of the productivity workflo
   - [[#dont-look-at-org-files-to-find-the-next-task-use-the-agenda-view][Don't look at Org files to find the next task, use the agenda view]]
   - [[#ensure-sufficient-metadata-on-tasks-for-effective-filtering][Ensure sufficient metadata on tasks for effective filtering]]
   - [[#keep-a-daily-log-of-work-being-done][Keep a daily log of work being done]]
-- [[#tasks][Tasks]]
-  - [[#figure-out-how-to-refile-tasks-to-an-org-capture-target][Figure out how to refile tasks to an org-capture target]]
 - [[#file-paths][File Paths]]
 - [[#workflow-states][Workflow States]]
 - [[#tags][Tags]]
@@ -21,10 +19,18 @@ This file contains the description and configuration of the productivity workflo
 - [[#clocking][Clocking]]
 - [[#capture-templates][Capture Templates]]
 - [[#old-configuration][Old Configuration]]
+  - [[#general][General]]
+  - [[#locations][Locations]]
+  - [[#keybinds][Keybinds]]
   - [[#agenda][Agenda]]
-  - [[#tags][Tags]]
-  - [[#tasks][Tasks]]
-  - [[#capture-templates][Capture Templates]]
+  - [[#clock][Clock]]
+  - [[#capturing][Capturing]]
+  - [[#otherpackage][Other/package]]
+    - [[#org-babel][org-babel]]
+    - [[#org-roam][org-roam]]
+    - [[#org-edna][org-edna]]
+    - [[#org-protocol][org-protocol]]
+    - [[#org-journal][org-journal]]
 - [[#module-setup][Module Setup]]
 :END:
 
@@ -74,7 +80,7 @@ The location where my =Notes= folder lives changes in some cases
       (org-roam-node-find
        nil
        nil
-       (bw/org-roam-filter-by-tag "Project")
+       (bw/org-roam-filter-by-tag "project")
        :templates
        '(("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
